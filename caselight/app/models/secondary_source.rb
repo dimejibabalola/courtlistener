@@ -1,0 +1,2 @@
+class SecondarySource < Document
+end

@@ -1,0 +1,31 @@
+<% content_for :title, "AI Research Assistant — Caselight" %>
+<div class="mx-auto max-w-3xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">AI Research Assistant</h1>
+  <p class="mt-1 text-sm text-gray-600">Source-grounded answers — every claim cites a retrieved passage.</p>
+
+  <%= form_with url: ai_conversations_path, method: :post, class: "card mt-5 flex gap-2 p-4" do %>
+    <%= text_field_tag :question, nil, placeholder: "Ask a legal research question…", required: true, class: "field-input flex-1" %>
+    <button type="submit" class="btn-primary">Ask</button>
+  <% end %>
+
+  <ul class="card mt-6 divide-y divide-gray-100">
+    <% @conversations.each do |conversation| %>
+      <li>
+        <%= link_to ai_conversation_path(conversation), class: "flex items-center gap-3 p-3.5 hover:bg-gray-50" do %>
+          <%= icon :sparkle, class: "h-4 w-4 shrink-0 text-brand-600" %>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium text-gray-900"><%= conversation.display_title %></p>
+            <p class="text-xs text-gray-500">
+              <%= conversation.ai_messages.size %> messages
+              <% if conversation.context %> · <%= conversation.context_type %>: <%= conversation.context.try(:title) || conversation.context.try(:name) %><% end %>
+              · <%= time_ago_in_words(conversation.updated_at) %> ago
+            </p>
+          </div>
+        <% end %>
+      </li>
+    <% end %>
+    <% if @conversations.empty? %>
+      <li class="p-10 text-center text-sm text-gray-500">No conversations yet.</li>
+    <% end %>
+  </ul>
+</div>

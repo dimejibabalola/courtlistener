@@ -1,0 +1,35 @@
+<% content_for :title, "Folders — Caselight" %>
+<div class="mx-auto max-w-4xl px-6 py-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Saved Research</h1>
+      <p class="mt-1 text-sm text-gray-600">Folders of saved authorities, uploads and drafts — shareable with your firm.</p>
+    </div>
+    <%= link_to new_folder_path, class: "btn-primary" do %>
+      <%= icon :folder_plus, class: "h-4 w-4" %> New Folder
+    <% end %>
+  </div>
+
+  <ul class="card mt-6 divide-y divide-gray-100">
+    <% @folders.each do |folder| %>
+      <li class="flex items-center gap-3 p-3.5">
+        <%= icon :folder, class: "h-5 w-5 shrink-0 text-brand-600" %>
+        <div class="min-w-0 flex-1">
+          <%= link_to folder.name, folder_path(folder), class: "text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+          <p class="text-xs text-gray-500">
+            <%= folder.items_count %> items
+            <% if folder.matter %> · matter: <%= link_to folder.matter.name, matter_path(folder.matter), class: "hover:text-brand-700" %><% end %>
+            <% if folder.shared? %> · <span class="badge-gray">shared</span><% end %>
+          </p>
+        </div>
+        <div class="flex shrink-0 items-center gap-1">
+          <%= button_to "Archive", archive_folder_path(folder), class: "btn-ghost !py-1 text-xs" %>
+          <%= button_to "Trash", trash_folder_path(folder), class: "btn-ghost !py-1 text-xs text-red-700", form: { data: { turbo_confirm: "Move “#{folder.name}” to trash?" } } %>
+        </div>
+      </li>
+    <% end %>
+    <% if @folders.empty? %>
+      <li class="p-8 text-center text-sm text-gray-500">No folders yet.</li>
+    <% end %>
+  </ul>
+</div>

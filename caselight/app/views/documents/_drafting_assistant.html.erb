@@ -1,0 +1,47 @@
+<% expanded = local_assigns.fetch(:expanded, false) %>
+<section class="card overflow-hidden" aria-label="Drafting assistant"
+         data-controller="editor"
+         data-editor-generate-url-value="<%= generate_drafts_path %>"
+         data-editor-document-slug-value="<%= document.slug %>">
+  <div class="flex items-center justify-between border-b border-gray-100 px-4 py-2.5">
+    <h2 class="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+      Drafting Assistant <%= icon :sparkle, class: "h-4 w-4 text-brand-600" %>
+    </h2>
+    <div class="flex items-center gap-2">
+      <label class="sr-only" for="tone-<%= document.id %>">Tone</label>
+      <select id="tone-<%= document.id %>" data-editor-target="tone"
+              class="rounded border-gray-300 py-1 pl-2 pr-7 text-xs focus:border-brand-500 focus:ring-brand-500">
+        <% Draft::TONES.each do |t| %>
+          <option value="<%= t %>">Tone: <%= t.titleize %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-0.5 border-b border-gray-100 px-3 py-1.5 text-gray-500">
+    <span class="mr-1 rounded border border-gray-200 px-2 py-0.5 text-xs">Paragraph</span>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="bold" aria-label="Bold"><%= icon :bold, class: "h-3.5 w-3.5" %></button>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="italic" aria-label="Italic"><%= icon :italic, class: "h-3.5 w-3.5" %></button>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="underline" aria-label="Underline"><%= icon :underline, class: "h-3.5 w-3.5" %></button>
+    <span class="mx-1 h-4 w-px bg-gray-200"></span>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="insertUnorderedList" aria-label="Bulleted list"><%= icon :list, class: "h-3.5 w-3.5" %></button>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="insertOrderedList" aria-label="Numbered list"><%= icon :menu, class: "h-3.5 w-3.5" %></button>
+    <span class="mx-1 h-4 w-px bg-gray-200"></span>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="justifyLeft" aria-label="Align left"><%= icon :align_left, class: "h-3.5 w-3.5" %></button>
+    <button type="button" class="rounded p-1.5 hover:bg-gray-100" data-action="editor#format" data-editor-command-param="justifyRight" aria-label="Align right"><%= icon :align_right, class: "h-3.5 w-3.5" %></button>
+    <button type="button" data-action="editor#insert" data-editor-target="insertButton"
+            class="ml-auto rounded bg-brand-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">Insert</button>
+  </div>
+
+  <div contenteditable="true" role="textbox" aria-multiline="true" aria-label="Draft text"
+       data-editor-target="surface" data-action="input->editor#sync"
+       class="min-h-24 px-4 py-3 text-[13px] leading-relaxed text-gray-800 <%= "min-h-48" if expanded %>"></div>
+
+  <%= form_with url: drafts_path, method: :post, class: "flex items-center justify-between border-t border-gray-100 bg-gray-50/60 px-4 py-2" do |f| %>
+    <p class="text-[11px] text-gray-500">“Insert” adds a grounded paragraph for <span class="font-medium"><%= document.title.truncate(40) %></span>.</p>
+    <%= hidden_field_tag "draft[title]", "Draft — #{document.title.truncate(60)}" %>
+    <%= hidden_field_tag "draft[document_id]", document.id %>
+    <input type="hidden" name="draft[body]" data-editor-target="field">
+    <button type="submit" class="text-xs font-semibold text-brand-700 hover:underline">Save to Drafts</button>
+  <% end %>
+</section>

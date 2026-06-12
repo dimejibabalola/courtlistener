@@ -1,0 +1,32 @@
+<div id="<%= dom_id(ai_message) %>" class="flex gap-3 <%= "flex-row-reverse" if ai_message.user_role? %>">
+  <% if ai_message.user_role? %>
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink-800 text-[10px] font-bold text-white"><%= ai_message.ai_conversation.user.initials %></span>
+    <div class="max-w-[80%] rounded-2xl rounded-tr-sm bg-brand-600 px-4 py-2.5 text-sm text-white">
+      <%= simple_format(ai_message.content, {}, wrapper_tag: "div") %>
+    </div>
+  <% else %>
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700"><%= icon :sparkle, class: "h-4 w-4" %></span>
+    <div class="max-w-[85%]">
+      <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-white px-4 py-2.5 text-sm leading-relaxed text-gray-800">
+        <%= simple_format(ai_message.content, {}, wrapper_tag: "div") %>
+      </div>
+      <% if ai_message.sources.any? %>
+        <div class="mt-1.5 flex flex-wrap gap-1.5">
+          <% ai_message.sources.each do |source| %>
+            <% doc = Document.find_by(id: source["document_id"]) %>
+            <% next unless doc %>
+            <%= link_to document_path(doc),
+                  class: "inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700 hover:border-brand-300 hover:text-brand-700",
+                  title: source["quote"] do %>
+              <span class="font-bold text-brand-700">[<%= source["n"] %>]</span>
+              <%= doc.title.truncate(34) %><span class="text-gray-400"><%= source["citation"] %></span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+      <% if ai_message.provider.present? %>
+        <p class="mt-1 text-[10px] text-gray-400"><%= ai_message.provider %><%= " · #{ai_message.model}" if ai_message.model.present? %></p>
+      <% end %>
+    </div>
+  <% end %>
+</div>

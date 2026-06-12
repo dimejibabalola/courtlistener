@@ -1,0 +1,65 @@
+<% document = entry.document %>
+<article class="relative bg-white px-4 py-3.5 <%= "ring-1 ring-inset ring-brand-200 bg-brand-50/40" if document == @selected_document %>">
+  <% if pinned %>
+    <span class="absolute right-3 top-3 text-brand-600" title="Pinned"><%= icon :pin, class: "h-4 w-4" %></span>
+  <% end %>
+
+  <h2 class="pr-6 font-serif text-[15px] font-semibold leading-snug">
+    <%= link_to document.title, research_url_with(doc: document.slug, tab: nil, page: @results.page),
+          class: "text-gray-900 hover:text-brand-700" %>
+  </h2>
+  <p class="mt-0.5 text-xs text-gray-500"><%= document.display_citation %><% if document.decided_on && document.is_a?(Case) %> (<%= document.court&.abbreviation %> <%= document.decided_on.year %>)<% end %></p>
+  <p class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+    <span><%= document.court&.abbreviation || document.doc_type_label %> · <%= date_display(document.decided_on) %></span>
+    <%= treatment_badge(document) %>
+  </p>
+
+  <% if entry.snippet.present? %>
+    <p class="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-gray-700"><%= highlight_snippet(entry.snippet) %></p>
+  <% end %>
+
+  <% if document.primary_topic %>
+    <p class="mt-1.5 text-xs text-gray-500">Key Issue:
+      <%= link_to document.primary_topic.name, topic_path(document.primary_topic), class: "text-gray-700 hover:text-brand-700" %>
+    </p>
+  <% end %>
+
+  <div class="mt-2 flex items-center gap-1 text-xs">
+    <div class="relative" data-controller="dropdown">
+      <button type="button" data-action="dropdown#toggle" data-dropdown-target="button" aria-expanded="false" class="btn-ghost !px-1.5 !py-1">
+        <%= icon :folder, class: "h-3.5 w-3.5" %> Save
+      </button>
+      <div data-dropdown-target="panel" data-action="click->dropdown#stop"
+           class="absolute left-0 z-30 mt-1 hidden w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+        <p class="px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-400">Save to folder</p>
+        <% @saved_folders.each do |folder| %>
+          <%= button_to folder_items_path(folder_id: folder.id, item_type: "Document", item_id: document.id),
+                class: "flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] hover:bg-gray-50" do %>
+            <%= icon :folder, class: "h-4 w-4 text-gray-400" %><span class="truncate"><%= folder.name %></span>
+          <% end %>
+        <% end %>
+        <%= link_to "Manage folders…", folders_path, class: "block px-3 py-1.5 text-[13px] font-medium text-brand-700 hover:bg-gray-50" %>
+      </div>
+    </div>
+    <button type="button" class="btn-ghost !px-1.5 !py-1" data-controller="clipboard"
+            data-clipboard-text-value="<%= full_citation_line(document) %>" data-action="clipboard#copy">
+      <%= icon :quote, class: "h-3.5 w-3.5" %> Cite
+      <span data-clipboard-target="feedback" class="hidden font-semibold text-green-700">Copied!</span>
+    </button>
+    <div class="relative ml-auto" data-controller="dropdown">
+      <button type="button" data-action="dropdown#toggle" data-dropdown-target="button" aria-expanded="false" class="btn-ghost !px-1 !py-1" aria-label="More actions">
+        <%= icon :dots, class: "h-4 w-4" %>
+      </button>
+      <div data-dropdown-target="panel" data-action="click->dropdown#stop"
+           class="absolute right-0 z-30 mt-1 hidden w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+        <% if pinned %>
+          <%= button_to "Unpin", unpin_document_path(document), method: :delete, class: "block w-full px-3 py-1.5 text-left text-[13px] hover:bg-gray-50" %>
+        <% else %>
+          <%= button_to "Pin to top", pin_document_path(document), class: "block w-full px-3 py-1.5 text-left text-[13px] hover:bg-gray-50" %>
+        <% end %>
+        <%= link_to "Citing references", document_citator_path(document), class: "block px-3 py-1.5 text-[13px] hover:bg-gray-50" %>
+        <%= link_to "Download text", download_document_path(document), class: "block px-3 py-1.5 text-[13px] hover:bg-gray-50", data: { turbo: false } %>
+      </div>
+    </div>
+  </div>
+</article>

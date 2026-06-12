@@ -1,0 +1,48 @@
+<% content_for :title, "Documents — Caselight" %>
+<div class="mx-auto max-w-5xl px-6 py-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Documents</h1>
+      <p class="mt-1 text-sm text-gray-600">Your uploads — briefs, opinions, contracts — with OCR text extraction and authority checking.</p>
+    </div>
+    <%= link_to new_upload_path, class: "btn-primary" do %>
+      <%= icon :upload, class: "h-4 w-4" %> Upload Document
+    <% end %>
+  </div>
+
+  <div class="mt-5 flex items-center gap-2">
+    <%= form_with url: uploads_path, method: :get, class: "flex flex-1 gap-2", data: { controller: "autosubmit" } do %>
+      <%= text_field_tag :q, params[:q], placeholder: "Search your documents…", class: "field-input max-w-sm" %>
+      <%= select_tag :kind, options_for_select([["All kinds", ""]] + UploadedDocument.kinds.keys.map { |k| [k.titleize, k] }, params[:kind]),
+            class: "field-input !w-auto", data: { action: "change->autosubmit#submit" } %>
+      <button type="submit" class="btn-ghost">Search</button>
+    <% end %>
+  </div>
+
+  <ul class="card mt-4 divide-y divide-gray-100">
+    <% @uploads.each do |upload| %>
+      <li class="flex items-center gap-3 p-3.5">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500"><%= icon :file, class: "h-5 w-5" %></span>
+        <div class="min-w-0 flex-1">
+          <%= link_to upload.title, upload_path(upload), class: "text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+          <p class="text-xs text-gray-500">
+            <%= upload.kind.titleize %>
+            <% if upload.matter %> · <%= upload.matter.name %><% end %>
+            <% if upload.pages_count %> · <%= upload.pages_count %> pp.<% end %>
+            <% if upload.extracted? %> · <%= number_compact(upload.word_count) %> words (<%= upload.ocr_method %>)<% end %>
+          </p>
+        </div>
+        <% status_css = { "pending" => "badge-gray", "processing" => "badge-yellow", "ready" => "badge-green", "failed" => "badge-red" }[upload.status] %>
+        <span class="<%= status_css %>"><%= upload.status %></span>
+        <% if upload.brief? && (analysis = upload.latest_analysis)&.complete? %>
+          <%= link_to upload_brief_analysis_path(upload, analysis), class: "shrink-0 text-xs font-semibold text-brand-700 hover:underline" do %>
+            <%= analysis.negative_count.positive? ? "⚠ #{analysis.negative_count} negative" : "authorities ✓" %>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+    <% if @uploads.empty? %>
+      <li class="p-10 text-center text-sm text-gray-500">No documents yet. Upload a brief to check its authorities.</li>
+    <% end %>
+  </ul>
+</div>

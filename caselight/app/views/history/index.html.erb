@@ -1,0 +1,53 @@
+<% content_for :title, "Timeline — Caselight" %>
+<div class="mx-auto max-w-4xl px-6 py-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Research Timeline</h1>
+      <p class="mt-1 text-sm text-gray-600">Every search you ran and document you opened — timestamped and resumable.</p>
+    </div>
+    <%= button_to history_path, method: :delete, class: "btn-ghost text-red-700",
+          form: { data: { turbo_confirm: "Clear all history?" } } do %>
+      <%= icon :trash, class: "h-4 w-4" %> Clear history
+    <% end %>
+  </div>
+
+  <% if @by_day.empty? %>
+    <p class="mt-10 text-center text-sm text-gray-500">Nothing yet — run a search to start your trail.</p>
+  <% end %>
+
+  <% @by_day.each do |day, entries| %>
+    <section class="mt-8" aria-label="<%= day.strftime("%A %B %-d") %>">
+      <h2 class="text-xs font-bold uppercase tracking-wide text-gray-500">
+        <%= day == Date.current ? "Today" : day.strftime("%A, %b %-d, %Y") %>
+      </h2>
+      <ol class="mt-2 space-y-px">
+        <% entries.each do |entry| %>
+          <li class="card flex items-center gap-3 rounded-none p-3 first:rounded-t-lg last:rounded-b-lg">
+            <% if entry[:kind] == :search %>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700"><%= icon :search, class: "h-4 w-4" %></span>
+              <div class="min-w-0 flex-1">
+                <%= link_to entry[:record].query, research_path(q: entry[:record].query, **entry[:record].filters),
+                      class: "block truncate text-sm font-medium text-gray-900 hover:text-brand-700" %>
+                <p class="text-xs text-gray-500">
+                  <%= entry[:record].query_type %> search · <%= number_compact(entry[:record].results_count.to_i) %> results
+                </p>
+              </div>
+            <% else %>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600"><%= icon :eye, class: "h-4 w-4" %></span>
+              <div class="min-w-0 flex-1">
+                <%= link_to entry[:record].document.title, document_path(entry[:record].document),
+                      class: "block truncate font-serif text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+                <p class="flex items-center gap-2 text-xs text-gray-500">
+                  <%= entry[:record].document.display_citation %>
+                  <%= treatment_badge(entry[:record].document) %>
+                  <% if entry[:record].views_count > 1 %><span>· viewed <%= entry[:record].views_count %>×</span><% end %>
+                </p>
+              </div>
+            <% end %>
+            <time class="shrink-0 text-xs tabular-nums text-gray-400" datetime="<%= entry[:at].iso8601 %>"><%= entry[:at].strftime("%-l:%M %p") %></time>
+          </li>
+        <% end %>
+      </ol>
+    </section>
+  <% end %>
+</div>

@@ -1,0 +1,22 @@
+<div class="space-y-4">
+  <p class="text-sm text-gray-600">
+    Build a draft section around this authority. The drafting assistant composes grounded
+    paragraphs from the holding and summary — citations are never invented.
+  </p>
+  <%= render "documents/drafting_assistant", document: document, expanded: true %>
+
+  <% related_drafts = current_user.drafts.kept.where(document: document) %>
+  <% if related_drafts.any? %>
+    <section class="card p-4">
+      <h2 class="text-sm font-bold text-gray-900">Drafts citing this authority</h2>
+      <ul class="mt-2 divide-y divide-gray-50">
+        <% related_drafts.each do |draft| %>
+          <li class="flex items-center justify-between py-2">
+            <%= link_to draft.title, edit_draft_path(draft), class: "text-sm font-medium text-gray-800 hover:text-brand-700" %>
+            <span class="text-xs text-gray-400">updated <%= time_ago_in_words(draft.updated_at) %> ago</span>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</div>

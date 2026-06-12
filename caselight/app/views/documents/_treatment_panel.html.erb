@@ -1,0 +1,11 @@
+<section class="card p-4" aria-label="Treatment">
+  <h2 class="mb-2 text-sm font-bold text-gray-900">Treatment</h2>
+  <dl class="divide-y divide-gray-50">
+    <div class="meta-row"><dt class="text-gray-500">Positive</dt><dd class="font-semibold text-green-700"><%= number_compact(counts[:positive]) %></dd></div>
+    <div class="meta-row"><dt class="text-gray-500">Distinguished</dt><dd class="font-semibold text-amber-600"><%= number_compact(counts[:distinguished]) %></dd></div>
+    <div class="meta-row"><dt class="text-gray-500">Followed</dt><dd class="font-semibold text-gray-800"><%= number_compact(counts[:followed]) %></dd></div>
+    <div class="meta-row"><dt class="text-gray-500">Overruled</dt><dd class="font-semibold <%= counts[:overruled].positive? ? "text-red-700" : "text-gray-800" %>"><%= number_compact(counts[:overruled]) %></dd></div>
+    <div class="meta-row"><dt class="text-gray-500">Cited By</dt><dd class="font-semibold text-gray-800"><%= number_compact(counts[:cited_by]) %></dd></div>
+  </dl>
+  <%= link_to "View Citing Cases", document_citator_path(document), class: "btn-outline mt-3 w-full !py-1.5 text-[13px]" %>
+</section>

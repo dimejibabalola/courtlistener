@@ -1,0 +1,7 @@
+<% content_for :title, "Archive — Caselight" %>
+<div class="mx-auto max-w-4xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">Archive</h1>
+  <p class="mt-1 text-sm text-gray-600">Archived items are hidden from active lists but kept indefinitely.</p>
+
+  <%= render "trash/groups", groups: @groups, mode: :archive %>
+</div>

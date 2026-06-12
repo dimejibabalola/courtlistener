@@ -1,0 +1,20 @@
+<nav class="flex w-56 shrink-0 flex-col bg-ink-900 px-2 py-3 transition-[width]" data-sidebar-target="rail" aria-label="Primary">
+  <div class="flex flex-1 flex-col gap-1">
+    <%= nav_item "Dashboard", root_path, :dashboard, active: request.path == root_path %>
+    <%= nav_item "Research", research_path, :research, active: section_active?(research_path) || request.path.start_with?("/documents") %>
+    <%= nav_item "Matters", matters_path, :briefcase, active: section_active?(matters_path, folders_path) %>
+    <%= nav_item "Documents", uploads_path, :file, active: section_active?(uploads_path) %>
+    <%= nav_item "Citations", citations_path, :citations, active: section_active?(citations_path, topics_path) %>
+    <%= nav_item "Drafts", drafts_path, :pencil, active: section_active?(drafts_path) %>
+    <%= nav_item "Timeline", history_path, :timeline, active: section_active?(history_path) %>
+  </div>
+
+  <div class="flex flex-col gap-1 border-t border-ink-700 pt-3">
+    <%= nav_item "Settings", settings_path, :settings, active: section_active?(settings_path) %>
+    <%= nav_item "Help", help_path, :help, active: section_active?(help_path) %>
+    <button type="button" data-action="sidebar#toggle" class="sidebar-link w-full" title="Collapse sidebar">
+      <%= icon :collapse, class: "h-5 w-5 shrink-0 transition-transform" %>
+      <span class="truncate" data-sidebar-target="label">Collapse</span>
+    </button>
+  </div>
+</nav>

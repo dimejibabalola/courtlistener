@@ -1,0 +1,104 @@
+<% content_for :title, "Settings — Caselight" %>
+<div class="mx-auto max-w-3xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">Settings</h1>
+
+  <section class="card mt-6 p-5" aria-label="Profile">
+    <h2 class="text-sm font-bold text-gray-900">Profile</h2>
+    <%= form_with url: settings_path, method: :patch, class: "mt-4 space-y-4" do |f| %>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="user_full_name">Full name</label>
+          <%= text_field_tag "user[full_name]", @user.full_name, id: "user_full_name", class: "field-input" %>
+        </div>
+        <div>
+          <label class="field-label">Email</label>
+          <p class="rounded border border-gray-100 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-500"><%= @user.email %></p>
+        </div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="user_settings_default_scope">Default search scope</label>
+          <%= select_tag "user[settings][default_scope]",
+                options_for_select([["All State & Federal", "all"], ["Federal", "federal"], ["State", "state"]], @user.setting(:default_scope, "all")),
+                id: "user_settings_default_scope", class: "field-input" %>
+        </div>
+        <div>
+          <label class="field-label" for="user_settings_results_per_page">Results per page</label>
+          <%= select_tag "user[settings][results_per_page]", options_for_select(%w[10 20 50], @user.setting(:results_per_page, "20")),
+                id: "user_settings_results_per_page", class: "field-input" %>
+        </div>
+      </div>
+      <%= f.submit "Save profile", class: "btn-primary" %>
+    <% end %>
+    <p class="mt-3 text-xs text-gray-500">
+      Workspace: <%= @user.organization ? "#{@user.organization.name} (firm)" : "individual" %> · role: <%= @user.role %>
+    </p>
+  </section>
+
+  <section class="card mt-6 p-5" aria-label="AI provider">
+    <h2 class="text-sm font-bold text-gray-900">AI Provider</h2>
+    <p class="mt-1 text-xs text-gray-500">
+      Powers the research assistant and drafting tools. Answers are always grounded in retrieved sources,
+      whichever provider composes them. Keys are encrypted at rest; leave a key blank to keep the stored one.
+    </p>
+
+    <% active_provider, active_model = Ai::Providers.resolve(@user) %>
+    <%= form_with url: settings_ai_path, method: :patch, class: "mt-4 space-y-4" do |f| %>
+      <fieldset class="grid gap-3 sm:grid-cols-2">
+        <legend class="sr-only">Provider</legend>
+        <% Ai::Providers::REGISTRY.each do |key, meta| %>
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-3 <%= @user.ai_provider == key ? "border-brand-500 bg-brand-50/50 ring-1 ring-brand-500" : "border-gray-200 hover:border-gray-300" %>">
+            <%= radio_button_tag "user[ai_provider]", key, @user.ai_provider == key, class: "mt-0.5 border-gray-300 text-brand-600 focus:ring-brand-500" %>
+            <span>
+              <span class="block text-sm font-semibold text-gray-900"><%= meta[:label] %></span>
+              <span class="block text-xs text-gray-500">
+                <%= meta[:requires_key] ? "Requires API key" : "No key needed — runs offline" %>
+                <% if key == active_provider %><span class="badge-green ml-1">active</span><% end %>
+              </span>
+            </span>
+          </label>
+        <% end %>
+      </fieldset>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="user_ai_model">Model</label>
+          <%= select_tag "user[ai_model]",
+                grouped_options_for_select(Ai::Providers::REGISTRY.map { |key, meta| [meta[:label], meta[:models]] }, @user.ai_model.presence || active_model),
+                id: "user_ai_model", class: "field-input" %>
+          <p class="mt-1 text-[11px] text-gray-400">Pick a model belonging to the selected provider.</p>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label class="field-label" for="user_deepseek_api_key">DeepSeek API key</label>
+          <%= password_field_tag "user[deepseek_api_key]", nil, id: "user_deepseek_api_key", class: "field-input",
+                placeholder: @user.deepseek_api_key.present? || ENV["DEEPSEEK_API_KEY"].present? ? "•••••••• (configured)" : "sk-…" %>
+        </div>
+        <div>
+          <label class="field-label" for="user_anthropic_api_key">Anthropic API key</label>
+          <%= password_field_tag "user[anthropic_api_key]", nil, id: "user_anthropic_api_key", class: "field-input",
+                placeholder: @user.anthropic_api_key.present? || ENV["ANTHROPIC_API_KEY"].present? ? "•••••••• (configured)" : "sk-ant-…" %>
+        </div>
+        <div>
+          <label class="field-label" for="user_openai_api_key">OpenAI API key</label>
+          <%= password_field_tag "user[openai_api_key]", nil, id: "user_openai_api_key", class: "field-input",
+                placeholder: @user.openai_api_key.present? || ENV["OPENAI_API_KEY"].present? ? "•••••••• (configured)" : "sk-…" %>
+        </div>
+      </div>
+
+      <%= f.submit "Save AI settings", class: "btn-primary" %>
+    <% end %>
+  </section>
+
+  <section class="card mt-6 p-5" aria-label="Data">
+    <h2 class="text-sm font-bold text-gray-900">Your Data</h2>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <%= link_to "Archived items", archive_path, class: "btn-outline !py-1.5" %>
+      <%= link_to "Trash", trash_path, class: "btn-outline !py-1.5" %>
+      <%= button_to "Clear research history", history_path, method: :delete, class: "btn-ghost text-red-700",
+            form: { data: { turbo_confirm: "Clear all searches and document views?" } } %>
+    </div>
+  </section>
+</div>

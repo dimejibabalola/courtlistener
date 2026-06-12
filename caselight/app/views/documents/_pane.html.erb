@@ -1,0 +1,126 @@
+<div class="px-6 pb-10 pt-3">
+  <%# Action bar %>
+  <div class="flex items-center justify-between gap-3 border-b border-gray-100 pb-2">
+    <% if show_back %>
+      <%= link_to back_url, class: "flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline" do %>
+        <%= icon :arrow_left, class: "h-4 w-4" %> Back to Results
+      <% end %>
+    <% else %><span></span><% end %>
+
+    <div class="flex items-center gap-0.5">
+      <% if pinned %>
+        <%= button_to unpin_document_path(document), method: :delete, class: "btn-ghost", title: "Unpin" do %>
+          <%= icon :pin, class: "h-4 w-4 text-brand-600" %> Pinned
+        <% end %>
+      <% else %>
+        <%= button_to pin_document_path(document), class: "btn-ghost", title: "Pin" do %>
+          <%= icon :pin, class: "h-4 w-4" %> Pin
+        <% end %>
+      <% end %>
+
+      <div class="relative" data-controller="dropdown">
+        <button type="button" data-action="dropdown#toggle" data-dropdown-target="button" aria-expanded="false" class="btn-ghost">
+          <%= icon :briefcase, class: "h-4 w-4" %> Save to Matter
+        </button>
+        <div data-dropdown-target="panel" data-action="click->dropdown#stop"
+             class="absolute right-0 z-30 mt-1 hidden w-64 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+          <p class="px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-gray-400">Folders</p>
+          <% current_user.visible_folders.kept.order(updated_at: :desc).limit(8).each do |folder| %>
+            <%= button_to folder_items_path(folder_id: folder.id, item_type: "Document", item_id: document.id),
+                  class: "flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] hover:bg-gray-50" do %>
+              <%= icon :folder, class: "h-4 w-4 text-gray-400" %>
+              <span class="truncate"><%= folder.name %></span>
+              <% if folder.matter %><span class="ml-auto truncate text-[11px] text-gray-400"><%= folder.matter.name %></span><% end %>
+            <% end %>
+          <% end %>
+          <%= link_to "New folder…", folders_path, class: "block px-3 py-1.5 text-[13px] font-medium text-brand-700 hover:bg-gray-50" %>
+        </div>
+      </div>
+
+      <%= link_to download_document_path(document), class: "btn-ghost", data: { turbo: false } do %>
+        <%= icon :download, class: "h-4 w-4" %> Download
+      <% end %>
+
+      <button type="button" class="btn-ghost" data-controller="clipboard"
+              data-clipboard-text-value="<%= full_citation_line(document) %>" data-action="clipboard#copy">
+        <%= icon :quote, class: "h-4 w-4" %> Cite
+        <span data-clipboard-target="feedback" class="hidden text-xs font-semibold text-green-700">Copied!</span>
+      </button>
+
+      <div class="relative" data-controller="dropdown">
+        <button type="button" data-action="dropdown#toggle" data-dropdown-target="button" aria-expanded="false" class="btn-ghost !px-1.5" aria-label="More actions">
+          <%= icon :dots, class: "h-4 w-4" %>
+        </button>
+        <div data-dropdown-target="panel" data-action="click->dropdown#stop"
+             class="absolute right-0 z-30 mt-1 hidden w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+          <%= link_to "Citation analysis", document_citator_path(document), class: "block px-3 py-1.5 text-[13px] hover:bg-gray-50" %>
+          <%= link_to "Start a draft", new_draft_path(document_id: document.id), class: "block px-3 py-1.5 text-[13px] hover:bg-gray-50" %>
+          <% if document.source_url.present? %>
+            <%= link_to "View source (#{document.source_name.presence || 'external'})", document.source_url,
+                  class: "block px-3 py-1.5 text-[13px] hover:bg-gray-50", target: "_blank", rel: "noopener" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Case header %>
+  <header class="mt-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <h1 class="font-serif text-[28px] font-bold leading-tight text-gray-900"><%= document.title %></h1>
+      <%= treatment_badge(document, size: :md) %>
+    </div>
+    <p class="mt-1 text-sm text-gray-600">
+      <%= document.display_citation %><% if document.is_a?(Case) && document.decided_on %> (<%= document.court&.abbreviation %> <%= document.decided_on.year %>)<% end %>
+      <% document.parallel_citations.each do |cite| %><span class="text-gray-400"> · <%= cite %></span><% end %>
+    </p>
+
+    <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-gray-600">
+      <% if document.court %>
+        <span class="flex items-center gap-1.5"><%= icon :gavel, class: "h-4 w-4 text-gray-400" %><%= document.court.name %></span>
+      <% end %>
+      <% if document.decided_on %>
+        <span class="flex items-center gap-1.5"><%= icon :calendar, class: "h-4 w-4 text-gray-400" %>Decided <%= date_display(document.decided_on) %></span>
+      <% end %>
+      <% if document.docket_number.present? %>
+        <span class="flex items-center gap-1.5"><%= icon :file, class: "h-4 w-4 text-gray-400" %><%= docket_display(document) %></span>
+      <% end %>
+      <% if document.argued_on %>
+        <span class="flex items-center gap-1.5"><%= icon :history, class: "h-4 w-4 text-gray-400" %>Argued <%= date_display(document.argued_on) %></span>
+      <% end %>
+    </div>
+
+    <% if document.panel_text.present? || document.author_judge %>
+      <div class="mt-3 space-y-0.5 text-[13px] text-gray-700">
+        <% if document.panel_text.present? %><p>Before: <%= document.panel_text %></p><% end %>
+        <% if document.author_judge %><p>Author: <%= document.author_judge.name %>, Judge.</p><% end %>
+      </div>
+    <% end %>
+  </header>
+
+  <%# Tabs %>
+  <nav class="mt-5 flex items-center gap-6 border-b border-gray-200" aria-label="Document sections">
+    <% {
+      "overview" => "Overview",
+      "opinion" => "Opinion Text",
+      "notes" => "Notes#{" (#{notes.size})" if notes.any?}",
+      "citing" => "Citing Cases (#{number_compact(document.cited_by_count)})",
+      "outline" => "Draft Outline"
+    }.each do |key, label| %>
+      <%= link_to label, tab_url.call(key),
+            class: class_names("tab-link", "tab-link-active" => tab == key),
+            aria: { current: tab == key ? "page" : nil } %>
+    <% end %>
+  </nav>
+
+  <%# Content + right meta column %>
+  <div class="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
+    <div class="min-w-0">
+      <%= render "documents/tab_#{tab}", document: document, notes: notes %>
+    </div>
+    <div class="space-y-4">
+      <%= render "documents/case_details", document: document %>
+      <%= render "documents/treatment_panel", document: document, counts: treatment_counts %>
+    </div>
+  </div>
+</div>

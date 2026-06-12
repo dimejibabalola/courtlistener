@@ -1,0 +1,2 @@
+class Statute < Document
+end

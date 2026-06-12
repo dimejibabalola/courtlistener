@@ -1,0 +1,110 @@
+<% content_for :title, "Dashboard — Caselight" %>
+<div class="mx-auto max-w-6xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">Good <%= Time.current.hour < 12 ? "morning" : (Time.current.hour < 18 ? "afternoon" : "evening") %>, <%= current_user.first_name %></h1>
+  <p class="mt-1 text-sm text-gray-600">Pick up where you left off, or start a new search above.</p>
+
+  <div class="mt-6 grid gap-5 lg:grid-cols-3">
+    <section class="card p-4 lg:col-span-2" aria-label="Recent activity">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-900">Recent Research</h2>
+        <%= link_to "Full timeline", history_path, class: "text-xs font-semibold text-brand-700 hover:underline" %>
+      </div>
+      <div class="mt-3 grid gap-5 md:grid-cols-2">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wide text-gray-400">Searches</h3>
+          <ul class="mt-2 space-y-1.5">
+            <% @recent_searches.each do |h| %>
+              <li>
+                <%= link_to research_path(q: h.query), class: "group flex items-center gap-2" do %>
+                  <%= icon :search, class: "h-3.5 w-3.5 shrink-0 text-gray-300 group-hover:text-brand-600" %>
+                  <span class="truncate text-[13px] text-gray-700 group-hover:text-brand-700"><%= h.query %></span>
+                <% end %>
+              </li>
+            <% end %>
+            <% if @recent_searches.empty? %><li class="text-xs text-gray-400">No searches yet.</li><% end %>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wide text-gray-400">Documents viewed</h3>
+          <ul class="mt-2 space-y-1.5">
+            <% @recent_views.each do |v| %>
+              <li>
+                <%= link_to document_path(v.document), class: "group flex items-center gap-2" do %>
+                  <%= icon :file, class: "h-3.5 w-3.5 shrink-0 text-gray-300 group-hover:text-brand-600" %>
+                  <span class="truncate text-[13px] text-gray-700 group-hover:text-brand-700"><%= v.document.title %></span>
+                <% end %>
+              </li>
+            <% end %>
+            <% if @recent_views.empty? %><li class="text-xs text-gray-400">Nothing viewed yet.</li><% end %>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-4" aria-label="Alerts">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-900">Alerts</h2>
+        <%= link_to "All alerts", notifications_path, class: "text-xs font-semibold text-brand-700 hover:underline" %>
+      </div>
+      <ul class="mt-3 space-y-2.5">
+        <% @alerts.each do |n| %>
+          <li class="flex gap-2">
+            <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full <%= n.read? ? "bg-gray-200" : "bg-brand-500" %>"></span>
+            <div class="min-w-0">
+              <%= link_to n.title, (n.url.presence || notifications_path), class: "block truncate text-[13px] font-medium text-gray-800 hover:text-brand-700" %>
+              <p class="text-[11px] text-gray-400"><%= time_ago_in_words(n.created_at) %> ago</p>
+            </div>
+          </li>
+        <% end %>
+        <% if @alerts.empty? %><li class="text-xs text-gray-400">No alerts. Enable them on a saved search.</li><% end %>
+      </ul>
+    </section>
+
+    <section class="card p-4" aria-label="Pinned documents">
+      <h2 class="text-sm font-bold text-gray-900">Pinned</h2>
+      <ul class="mt-3 space-y-2">
+        <% @pinned.each do |pin| %>
+          <li class="flex items-center justify-between gap-2">
+            <%= link_to pin.document.title, document_path(pin.document), class: "truncate font-serif text-[13px] font-semibold text-gray-800 hover:text-brand-700" %>
+            <%= treatment_badge(pin.document) %>
+          </li>
+        <% end %>
+        <% if @pinned.empty? %><li class="text-xs text-gray-400">Pin key authorities from search results.</li><% end %>
+      </ul>
+    </section>
+
+    <section class="card p-4" aria-label="Matters">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-900">Matters</h2>
+        <%= link_to "All matters", matters_path, class: "text-xs font-semibold text-brand-700 hover:underline" %>
+      </div>
+      <ul class="mt-3 space-y-2">
+        <% @matters.each do |matter| %>
+          <li>
+            <%= link_to matter_path(matter), class: "group block" do %>
+              <p class="truncate text-[13px] font-semibold text-gray-800 group-hover:text-brand-700"><%= matter.name %></p>
+              <p class="text-[11px] text-gray-400"><%= matter.matter_number %> · <%= matter.documents_count %> items</p>
+            <% end %>
+          </li>
+        <% end %>
+        <% if @matters.empty? %><li class="text-xs text-gray-400"><%= link_to "Create your first matter", new_matter_path, class: "text-brand-700 hover:underline" %></li><% end %>
+      </ul>
+    </section>
+
+    <section class="card p-4" aria-label="Saved searches">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-900">Saved Searches</h2>
+        <%= link_to "Manage", saved_searches_path, class: "text-xs font-semibold text-brand-700 hover:underline" %>
+      </div>
+      <ul class="mt-3 space-y-2">
+        <% @saved_searches.each do |s| %>
+          <li class="flex items-center justify-between gap-2">
+            <%= link_to s.name, research_path(q: s.query, **s.filters), class: "truncate text-[13px] font-medium text-gray-800 hover:text-brand-700" %>
+            <% if s.alerts_enabled? %><span class="badge-gray shrink-0">alerts</span><% end %>
+          </li>
+        <% end %>
+        <% if @saved_searches.empty? %><li class="text-xs text-gray-400">Save a search to re-run it anytime.</li><% end %>
+      </ul>
+    </section>
+  </div>
+</div>

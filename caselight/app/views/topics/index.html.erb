@@ -1,0 +1,32 @@
+<% content_for :title, "Browse Topics — Caselight" %>
+<div class="mx-auto max-w-4xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">Legal Topic Taxonomy</h1>
+  <p class="mt-1 text-sm text-gray-600">Navigate area → topic → point of law. Headnotes hang off the leaves.</p>
+
+  <div class="mt-6 space-y-6">
+    <% @roots.each do |root| %>
+      <section class="card p-4">
+        <h2 class="flex items-baseline gap-2">
+          <%= link_to root.name, topic_path(root), class: "text-base font-bold text-gray-900 hover:text-brand-700" %>
+          <span class="text-xs text-gray-400"><%= root.code %></span>
+        </h2>
+        <div class="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+          <% root.children.each do |child| %>
+            <div>
+              <%= link_to topic_path(child), class: "flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50" do %>
+                <span class="text-sm font-medium text-gray-800"><%= child.name %></span>
+                <span class="text-xs text-gray-400"><%= child.code %></span>
+              <% end %>
+              <% child.children.each do |leaf| %>
+                <%= link_to topic_path(leaf), class: "flex items-center justify-between rounded py-1 pl-6 pr-2 hover:bg-gray-50" do %>
+                  <span class="text-[13px] text-gray-600"><%= leaf.name %></span>
+                  <span class="text-[11px] tabular-nums text-gray-400"><%= leaf.headnotes_count %></span>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</div>

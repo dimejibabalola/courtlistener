@@ -1,0 +1,26 @@
+<% content_for :title, "Alerts — Caselight" %>
+<div class="mx-auto max-w-3xl px-6 py-8">
+  <div class="flex items-center justify-between">
+    <h1 class="text-xl font-bold text-gray-900">Alerts</h1>
+    <%= button_to "Mark all read", mark_all_read_notifications_path, class: "btn-ghost" %>
+  </div>
+
+  <ul class="card mt-5 divide-y divide-gray-100">
+    <% @notifications.each do |n| %>
+      <li class="flex items-start gap-3 p-4 <%= "bg-brand-50/40" unless n.read? %>">
+        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full <%= n.read? ? "bg-gray-200" : "bg-brand-500" %>"></span>
+        <div class="min-w-0 flex-1">
+          <%= link_to n.title, (n.url.presence || "#"), class: "block text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+          <% if n.body.present? %><p class="mt-0.5 text-[13px] text-gray-600"><%= n.body %></p><% end %>
+          <p class="mt-1 text-xs text-gray-400"><%= n.kind.humanize %> · <%= time_ago_in_words(n.created_at) %> ago</p>
+        </div>
+        <% unless n.read? %>
+          <%= button_to "Mark read", mark_read_notification_path(n), class: "shrink-0 text-xs font-medium text-brand-700 hover:underline" %>
+        <% end %>
+      </li>
+    <% end %>
+    <% if @notifications.empty? %>
+      <li class="p-10 text-center text-sm text-gray-500">No alerts. Save a search with alerts enabled to get notified of new hits.</li>
+    <% end %>
+  </ul>
+</div>

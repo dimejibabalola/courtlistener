@@ -1,0 +1,3 @@
+web: bin/rails server
+css: bin/rails tailwindcss:watch
+worker: [ -n "$USE_SIDEKIQ" ] && bundle exec sidekiq || echo "sidekiq disabled (set USE_SIDEKIQ=1); jobs run via :async"

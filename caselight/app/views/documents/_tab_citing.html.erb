@@ -1,0 +1,32 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <p class="text-sm text-gray-600">
+      <span class="font-semibold text-gray-900"><%= number_compact(document.cited_by_count) %></span>
+      citing <%= "reference".pluralize(document.cited_by_count) %> ·
+      <span class="font-semibold text-gray-900"><%= number_compact(document.cites_count) %></span> cited authorities
+    </p>
+    <%= link_to "Full citation analysis →", document_citator_path(document), class: "text-sm font-semibold text-brand-700 hover:underline" %>
+  </div>
+
+  <ul class="divide-y divide-gray-100">
+    <% document.inbound_references.includes(citing_document: :court).order(created_at: :desc).limit(25).each do |ref| %>
+      <li class="flex items-start gap-3 py-3">
+        <%= classification_dot(ref.classification) %>
+        <div class="min-w-0 flex-1">
+          <%= link_to ref.citing_document.title, document_path(ref.citing_document), class: "font-serif text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+          <p class="text-xs text-gray-500">
+            <%= ref.citing_document.display_citation %> · <%= ref.citing_document.court_line %>
+            <% if ref.pin_cite.present? %> · at <%= ref.pin_cite %><% end %>
+          </p>
+          <% if ref.passage.present? %>
+            <p class="mt-1 line-clamp-2 text-[13px] text-gray-600">“<%= ref.passage %>”</p>
+          <% end %>
+        </div>
+        <div class="flex shrink-0 flex-col items-end gap-1">
+          <span class="<%= { positive: "badge-green", cautionary: "badge-yellow", negative: "badge-red" }[ref.classification] %>"><%= ref.treatment_label %></span>
+          <span class="text-[11px] text-gray-400"><%= ref.depth.humanize %></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+</div>

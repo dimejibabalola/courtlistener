@@ -1,0 +1,10 @@
+:concurrency: 5
+:queues:
+  - default
+  - ingest
+  - indexing
+  - citator
+  - briefs
+  - ocr
+  - alerts
+  - maintenance

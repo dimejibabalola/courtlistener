@@ -1,0 +1,36 @@
+<% content_for :title, "Upload Document — Caselight" %>
+<div class="mx-auto max-w-xl px-6 py-10">
+  <h1 class="text-xl font-bold text-gray-900">Upload a Document</h1>
+  <p class="mt-1 text-sm text-gray-600">PDF, DOCX or TXT. Briefs are automatically run through the authority checker after text extraction.</p>
+
+  <div class="card mt-5 p-5">
+    <%= form_with model: @upload, url: uploads_path, class: "space-y-4" do |f| %>
+      <% if @upload.errors.any? %>
+        <div class="card border-red-200 bg-red-50 p-3 text-sm text-red-800"><%= @upload.errors.full_messages.to_sentence %></div>
+      <% end %>
+      <div>
+        <%= f.label :file, class: "field-label" %>
+        <%= f.file_field :file, accept: ".pdf,.docx,.txt,.md", required: true,
+              class: "block w-full cursor-pointer rounded border border-dashed border-gray-300 p-6 text-sm text-gray-600 file:mr-3 file:rounded file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:border-brand-400" %>
+      </div>
+      <div>
+        <%= f.label :title, "Title (optional — defaults to filename)", class: "field-label" %>
+        <%= f.text_field :title, class: "field-input" %>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <%= f.label :kind, class: "field-label" %>
+          <%= f.select :kind, UploadedDocument.kinds.keys.map { |k| [k.titleize, k] }, {}, class: "field-input" %>
+        </div>
+        <div>
+          <%= f.label :matter_id, "Matter", class: "field-label" %>
+          <%= f.collection_select :matter_id, @matters, :id, :name, { include_blank: "— none —" }, class: "field-input" %>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <%= f.submit "Upload", class: "btn-primary" %>
+        <%= link_to "Cancel", uploads_path, class: "btn-ghost" %>
+      </div>
+    <% end %>
+  </div>
+</div>

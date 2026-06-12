@@ -1,0 +1,9 @@
+<%= render "documents/pane",
+      document: @selected_document,
+      tab: @tab,
+      notes: @notes,
+      treatment_counts: @treatment_counts,
+      pinned: @pinned,
+      back_url: research_url_with(doc: nil, tab: nil),
+      tab_url: ->(t) { research_url_with(tab: t) },
+      show_back: @results.present? %>

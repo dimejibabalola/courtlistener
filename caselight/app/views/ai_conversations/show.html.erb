@@ -1,0 +1,26 @@
+<% content_for :title, "#{@conversation.display_title} — Assistant" %>
+<div class="mx-auto flex h-full max-w-3xl flex-col px-6 py-6" data-controller="chat">
+  <div class="flex items-center justify-between">
+    <%= link_to ai_conversations_path, class: "flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline" do %>
+      <%= icon :arrow_left, class: "h-4 w-4" %> All conversations
+    <% end %>
+    <p class="text-xs text-gray-400">
+      Provider: <%= Ai::Providers.fetch(@conversation.provider.presence || Ai::Providers.resolve(current_user).first)[:label] %>
+      <% if @conversation.context %> · grounded in <%= @conversation.context_type.downcase %>: <span class="font-medium text-gray-600"><%= @conversation.context.try(:title) || @conversation.context.try(:name) %></span><% end %>
+    </p>
+  </div>
+
+  <div class="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1" data-chat-target="messages" id="ai_messages">
+    <%= render @conversation.ai_messages %>
+  </div>
+
+  <div data-chat-target="pending" class="hidden py-2 text-center text-xs text-gray-400">Retrieving sources and composing a grounded answer…</div>
+
+  <%= form_with url: ai_conversation_ai_messages_path(@conversation), method: :post,
+        class: "mt-3 flex gap-2", data: { action: "turbo:submit-start->chat#submit" } do %>
+    <%= text_field_tag "ai_message[content]", nil, placeholder: "Ask a follow up question…", required: true,
+          class: "field-input flex-1", data: { chat_target: "input" }, autocomplete: "off" %>
+    <button type="submit" class="btn-primary" aria-label="Send"><%= icon :send, class: "h-4 w-4" %></button>
+  <% end %>
+  <p class="mt-1.5 text-center text-[11px] text-gray-400">Research assistance, not legal advice. Answers cite only retrieved passages.</p>
+</div>

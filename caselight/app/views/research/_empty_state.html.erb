@@ -1,0 +1,38 @@
+<div class="flex flex-1 flex-col gap-4 p-5">
+  <h1 class="text-base font-semibold text-gray-900">Search the law</h1>
+  <p class="text-sm text-gray-600">
+    Use natural language, terms &amp; connectors
+    (<code class="rounded bg-gray-100 px-1">AND</code>, <code class="rounded bg-gray-100 px-1">OR</code>,
+    <code class="rounded bg-gray-100 px-1">/p</code>, <code class="rounded bg-gray-100 px-1">!</code>,
+    <code class="rounded bg-gray-100 px-1">"phrase"</code>), or paste a citation like
+    <code class="rounded bg-gray-100 px-1">987 F.3d 1234</code>.
+  </p>
+
+  <% recent = current_user.search_histories.recent_first.limit(6) %>
+  <% if recent.any? %>
+    <h2 class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-500">Recent searches</h2>
+    <ul class="space-y-1">
+      <% recent.each do |h| %>
+        <li>
+          <%= link_to research_path(q: h.query), class: "group flex items-center gap-2 rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50" do %>
+            <%= icon :history, class: "h-4 w-4 text-gray-400" %>
+            <span class="truncate group-hover:text-brand-700"><%= h.query %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% saved = current_user.saved_searches.order(updated_at: :desc).limit(5) %>
+  <% if saved.any? %>
+    <h2 class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-500">Saved searches</h2>
+    <ul class="space-y-1">
+      <% saved.each do |s| %>
+        <li class="flex items-center justify-between gap-2 rounded px-2 py-1.5 hover:bg-gray-50">
+          <%= link_to s.name, research_path(q: s.query, **s.filters), class: "truncate text-sm text-gray-700 hover:text-brand-700" %>
+          <% if s.alerts_enabled? %><span class="badge-gray shrink-0">alerts on</span><% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

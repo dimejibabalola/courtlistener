@@ -1,0 +1,2 @@
+class Regulation < Document
+end

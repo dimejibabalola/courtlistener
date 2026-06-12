@@ -1,0 +1,29 @@
+<% content_for :title, "Saved Searches — Caselight" %>
+<div class="mx-auto max-w-3xl px-6 py-8">
+  <h1 class="text-xl font-bold text-gray-900">Saved Searches</h1>
+  <p class="mt-1 text-sm text-gray-600">Re-run with one click; alert-enabled searches re-run automatically and notify you of new hits.</p>
+
+  <ul class="card mt-6 divide-y divide-gray-100">
+    <% @saved_searches.each do |saved| %>
+      <li class="flex items-center gap-3 p-3.5">
+        <%= icon :search, class: "h-4 w-4 shrink-0 text-gray-400" %>
+        <div class="min-w-0 flex-1">
+          <%= link_to saved.name, research_path(q: saved.query, **saved.filters), class: "text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+          <p class="text-xs text-gray-500">
+            <code class="rounded bg-gray-50 px-1"><%= saved.query %></code>
+            <% if saved.last_run_at %> · last run <%= time_ago_in_words(saved.last_run_at) %> ago (<%= saved.last_results_count %> results)<% end %>
+          </p>
+        </div>
+        <%= button_to toggle_alerts_saved_search_path(saved), class: "shrink-0" do %>
+          <span class="<%= saved.alerts_enabled? ? "badge-green" : "badge-gray" %>">alerts <%= saved.alerts_enabled? ? "on" : "off" %></span>
+        <% end %>
+        <%= button_to saved_search_path(saved), method: :delete, class: "shrink-0 p-1 text-gray-300 hover:text-red-600", aria: { label: "Delete saved search" } do %>
+          <%= icon :trash, class: "h-4 w-4" %>
+        <% end %>
+      </li>
+    <% end %>
+    <% if @saved_searches.empty? %>
+      <li class="p-10 text-center text-sm text-gray-500">No saved searches — run a search and click “Save search”.</li>
+    <% end %>
+  </ul>
+</div>

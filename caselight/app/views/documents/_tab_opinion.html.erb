@@ -1,0 +1,48 @@
+<div class="relative space-y-6" data-controller="annotate">
+  <% if document.headnotes.any? %>
+    <section class="card bg-gray-50/60 p-4" aria-label="Headnotes">
+      <h2 class="text-sm font-bold text-gray-900">Headnotes</h2>
+      <ol class="mt-2 space-y-3">
+        <% document.headnotes.each do |headnote| %>
+          <li id="<%= headnote.anchor %>" class="flex gap-3 text-[13px] leading-relaxed text-gray-700">
+            <span class="font-bold text-brand-700">[<%= headnote.number %>]</span>
+            <div>
+              <p><%= headnote.text %></p>
+              <p class="mt-1 flex flex-wrap gap-1.5">
+                <% headnote.topics.each do |topic| %>
+                  <%= link_to topic_path(topic), class: "badge-gray hover:bg-brand-50 hover:text-brand-800", title: topic.path_names.join(" › ") do %>
+                    <%= topic.code %> · <%= topic.name %>
+                  <% end %>
+                <% end %>
+              </p>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    </section>
+  <% end %>
+
+  <button type="button" data-annotate-target="button" data-action="annotate#capture"
+          class="absolute z-20 hidden rounded bg-ink-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg">
+    Highlight &amp; annotate
+  </button>
+
+  <div data-annotate-target="form" class="card hidden border-brand-200 bg-brand-50/50 p-4">
+    <%= form_with url: document_annotations_path(document), method: :post do |f| %>
+      <p class="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">Highlighted passage</p>
+      <blockquote data-annotate-target="preview" class="border-l-2 border-brand-400 pl-3 text-[13px] italic text-gray-700"></blockquote>
+      <%= hidden_field_tag "annotation[kind]", "highlight" %>
+      <input type="hidden" name="annotation[quote]" data-annotate-target="quoteField">
+      <%= text_area_tag "annotation[body]", nil, rows: 2, placeholder: "Add a note about this passage (optional)…", class: "field-input mt-2" %>
+      <div class="mt-2 flex gap-2">
+        <button type="submit" class="btn-primary !py-1.5 text-xs">Save highlight</button>
+        <button type="button" data-action="annotate#cancel" class="btn-ghost text-xs">Cancel</button>
+      </div>
+    <% end %>
+  </div>
+
+  <article class="prose-sm max-w-none whitespace-pre-line font-serif text-[15px] leading-7 text-gray-800"
+           data-annotate-target="text" data-action="mouseup->annotate#check">
+    <%= document.reading_text %>
+  </article>
+</div>

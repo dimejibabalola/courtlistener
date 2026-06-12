@@ -1,0 +1,68 @@
+<% content_for :title, "#{@upload.title} — Documents" %>
+<div class="mx-auto max-w-5xl px-6 py-8">
+  <%= link_to uploads_path, class: "flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline" do %>
+    <%= icon :arrow_left, class: "h-4 w-4" %> All documents
+  <% end %>
+
+  <header class="mt-3 flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900"><%= @upload.title %></h1>
+      <p class="mt-0.5 flex items-center gap-2 text-sm text-gray-500">
+        <%= @upload.kind.titleize %>
+        <% status_css = { "pending" => "badge-gray", "processing" => "badge-yellow", "ready" => "badge-green", "failed" => "badge-red" }[@upload.status] %>
+        <span class="<%= status_css %>"><%= @upload.status %></span>
+        <% if @upload.extracted? %><span>· <%= number_compact(@upload.word_count) %> words via <%= @upload.ocr_method %></span><% end %>
+        <% if @upload.matter %><span>· <%= link_to @upload.matter.name, matter_path(@upload.matter), class: "hover:text-brand-700" %></span><% end %>
+      </p>
+      <% if @upload.failed? && @upload.error_message.present? %>
+        <p class="mt-1 text-xs text-red-700">Extraction failed: <%= @upload.error_message %></p>
+      <% end %>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <% if @upload.brief? && @upload.extracted? %>
+        <%= button_to upload_brief_analyses_path(@upload), class: "btn-primary" do %>
+          <%= icon :check, class: "h-4 w-4" %> Check Authorities
+        <% end %>
+      <% end %>
+      <%= button_to "Re-extract", reprocess_upload_path(@upload), class: "btn-ghost" %>
+      <%= button_to "Trash", trash_upload_path(@upload), class: "btn-ghost text-red-700", form: { data: { turbo_confirm: "Move to trash?" } } %>
+    </div>
+  </header>
+
+  <% if @analysis %>
+    <section class="card mt-5 p-4" aria-label="Latest authority check">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-sm font-bold text-gray-900">Authority Check</h2>
+        <span class="badge-gray"><%= @analysis.status %></span>
+      </div>
+      <% if @analysis.complete? %>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <% { "Authorities" => [@analysis.authorities_count, "text-gray-900"],
+               "Clean" => [@analysis.clean_count, "text-green-700"],
+               "Cautionary" => [@analysis.cautionary_count, "text-amber-600"],
+               "Negative" => [@analysis.negative_count, "text-red-700"],
+               "Unmatched" => [@analysis.unmatched_count, "text-gray-500"] }.each do |label, (count, color)| %>
+            <div class="rounded-lg bg-gray-50 p-2.5 text-center">
+              <p class="text-xl font-bold tabular-nums <%= color %>"><%= count %></p>
+              <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500"><%= label %></p>
+            </div>
+          <% end %>
+        </div>
+        <%= link_to "Open table of authorities →", upload_brief_analysis_path(@upload, @analysis), class: "mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline" %>
+      <% elsif @analysis.failed? %>
+        <p class="mt-2 text-sm text-red-700"><%= @analysis.error_message %></p>
+      <% else %>
+        <p class="mt-2 text-sm text-gray-500">Analysis in progress — refresh shortly.</p>
+      <% end %>
+    </section>
+  <% end %>
+
+  <section class="card mt-5 p-4" aria-label="Extracted text">
+    <h2 class="text-sm font-bold text-gray-900">Extracted Text</h2>
+    <% if @upload.extracted? %>
+      <pre class="mt-2 max-h-[32rem] overflow-y-auto whitespace-pre-wrap font-serif text-[13px] leading-relaxed text-gray-700"><%= @upload.extracted_text %></pre>
+    <% else %>
+      <p class="mt-2 text-sm text-gray-500">No text yet — extraction <%= @upload.processing? ? "is running" : "has not completed" %>.</p>
+    <% end %>
+  </section>
+</div>

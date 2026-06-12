@@ -1,0 +1,63 @@
+<div class="border-b border-gray-200 px-4 pb-3 pt-4">
+  <h1 class="truncate text-[15px] font-semibold text-gray-900">Results for: “<%= @results.query %>”</h1>
+  <p class="mt-0.5 text-xs text-gray-500">
+    <%= number_compact(@results.total) %> <%= "result".pluralize(@results.total) %>
+    <span class="text-gray-300">·</span>
+    <span title="Query interpreted as <%= @results.query_type %> (<%= @results.reason %>); engines: <%= @results.engines.join(" + ") %>">
+      <%= @results.query_type %> search
+    </span>
+  </p>
+  <div class="mt-2 flex items-center justify-between gap-2">
+    <%= form_with url: research_path, method: :get, class: "flex items-center gap-1.5 text-xs", data: { controller: "autosubmit" } do |f| %>
+      <% request.query_parameters.except("sort", "page").each do |k, v| %><%= hidden_field_tag k, v %><% end %>
+      <label for="sort" class="text-gray-500">Sort by:</label>
+      <%= select_tag :sort, options_for_select([["Relevance", "relevance"], ["Date", "date"], ["Most cited", "cited"]], @sort),
+            class: "rounded border-gray-300 py-1 pl-2 pr-7 text-xs focus:border-brand-500 focus:ring-brand-500",
+            data: { action: "change->autosubmit#submit" } %>
+    <% end %>
+    <div class="flex items-center gap-0.5 rounded border border-gray-200 p-0.5" role="group" aria-label="Result layout">
+      <%= link_to research_url_with(view: nil), class: "rounded p-1 #{params[:view] != 'grid' ? 'bg-gray-100 text-gray-800' : 'text-gray-400 hover:text-gray-700'}", aria: { label: "List view" } do %><%= icon :list, class: "h-4 w-4" %><% end %>
+      <%= link_to research_url_with(view: "grid"), class: "rounded p-1 #{params[:view] == 'grid' ? 'bg-gray-100 text-gray-800' : 'text-gray-400 hover:text-gray-700'}", aria: { label: "Grid view" } do %><%= icon :grid, class: "h-4 w-4" %><% end %>
+    </div>
+  </div>
+  <div class="mt-2 flex items-center gap-3 text-xs">
+    <%= form_with url: saved_searches_path, method: :post, class: "inline" do %>
+      <%= hidden_field_tag :query, @results.query %>
+      <% @filters.each do |k, v| %><%= hidden_field_tag k, v %><% end %>
+      <button type="submit" class="font-medium text-brand-700 hover:underline">Save search</button>
+    <% end %>
+    <%= form_with url: saved_searches_path, method: :post, class: "inline" do %>
+      <%= hidden_field_tag :query, @results.query %>
+      <%= hidden_field_tag :alerts_enabled, "1" %>
+      <% @filters.each do |k, v| %><%= hidden_field_tag k, v %><% end %>
+      <button type="submit" class="font-medium text-gray-500 hover:text-brand-700 hover:underline">Save + alert me</button>
+    <% end %>
+  </div>
+</div>
+
+<div class="min-h-0 flex-1 overflow-y-auto <%= params[:view] == 'grid' ? 'grid grid-cols-2 content-start gap-px bg-gray-100' : 'divide-y divide-gray-100' %>">
+  <% if @results.entries.empty? %>
+    <p class="p-6 text-sm text-gray-500">No results. Try broader terms, fewer connectors, or remove filters.</p>
+  <% end %>
+  <% pinned_ids = current_user.pins.pluck(:document_id).to_set %>
+  <% @results.entries.each do |entry| %>
+    <%= render "research/result_card", entry: entry, pinned: pinned_ids.include?(entry.document.id) %>
+  <% end %>
+</div>
+
+<div class="border-t border-gray-200 p-3">
+  <% if @results.total_pages > 1 %>
+    <div class="mb-2 flex items-center justify-between text-xs text-gray-500">
+      <% if @results.page > 1 %>
+        <%= link_to "← Previous", research_url_with(page: @results.page - 1), class: "font-medium text-brand-700 hover:underline" %>
+      <% else %><span></span><% end %>
+      <span>Page <%= @results.page %> of <%= @results.total_pages %></span>
+      <% if @results.page < @results.total_pages %>
+        <%= link_to "Next →", research_url_with(page: @results.page + 1), class: "font-medium text-brand-700 hover:underline" %>
+      <% else %><span></span><% end %>
+    </div>
+  <% end %>
+  <%= link_to research_path(q: @results.query), class: "btn-outline w-full" do %>
+    <%= icon :arrow_left, class: "h-4 w-4" %> Modify Search
+  <% end %>
+</div>

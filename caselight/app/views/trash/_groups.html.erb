@@ -1,0 +1,35 @@
+<% restore_paths = {
+  "Matters" => ->(r) { mode == :trash ? restore_matter_path(r) : unarchive_matter_path(r) },
+  "Folders" => ->(r) { restore_folder_path(r) },
+  "Drafts" => ->(r) { restore_draft_path(r) },
+  "Uploads" => ->(r) { restore_upload_path(r) }
+} %>
+
+<% if groups.values.all?(&:empty?) %>
+  <p class="mt-12 text-center text-sm text-gray-500">Nothing here.</p>
+<% end %>
+
+<% groups.each do |label, records| %>
+  <% next if records.empty? %>
+  <section class="mt-6" aria-label="<%= label %>">
+    <h2 class="text-xs font-bold uppercase tracking-wide text-gray-500"><%= label %></h2>
+    <ul class="card mt-2 divide-y divide-gray-100">
+      <% records.each do |record| %>
+        <li class="flex items-center gap-3 p-3">
+          <%= icon({ "Matters" => :briefcase, "Folders" => :folder, "Drafts" => :pencil, "Uploads" => :file }[label], class: "h-4 w-4 shrink-0 text-gray-400") %>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium text-gray-800"><%= record.try(:name) || record.try(:title) %></p>
+            <p class="text-xs text-gray-400">
+              <% if mode == :trash %>
+                trashed <%= time_ago_in_words(record.trashed_at) %> ago · purges in <%= record.days_until_purge %> days
+              <% else %>
+                archived <%= time_ago_in_words(record.archived_at) %> ago
+              <% end %>
+            </p>
+          </div>
+          <%= button_to mode == :trash ? "Restore" : "Unarchive", restore_paths[label].call(record), class: "btn-outline !py-1 text-xs" %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

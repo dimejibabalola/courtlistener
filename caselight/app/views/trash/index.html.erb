@@ -1,0 +1,15 @@
+<% content_for :title, "Trash — Caselight" %>
+<div class="mx-auto max-w-4xl px-6 py-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Trash</h1>
+      <p class="mt-1 text-sm text-gray-600">Items are permanently deleted <%= SoftDeletable::PURGE_AFTER.inspect %> after trashing.</p>
+    </div>
+    <%= button_to empty_trash_path, method: :delete, class: "btn-ghost text-red-700",
+          form: { data: { turbo_confirm: "Permanently delete everything in trash?" } } do %>
+      <%= icon :trash, class: "h-4 w-4" %> Empty trash
+    <% end %>
+  </div>
+
+  <%= render "trash/groups", groups: @groups, mode: :trash %>
+</div>

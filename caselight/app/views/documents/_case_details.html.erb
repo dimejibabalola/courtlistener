@@ -1,0 +1,28 @@
+<section class="card p-4" aria-label="Case details">
+  <h2 class="mb-2 text-sm font-bold text-gray-900">Case Details</h2>
+  <dl class="divide-y divide-gray-50">
+    <% {
+      "Court" => document.court&.abbreviation || document.doc_type_label,
+      "Decided" => date_display(document.decided_on),
+      "Docket No." => document.docket_number,
+      "Lower Court" => document.lower_court&.short_name,
+      "Lower Court No." => document.lower_court_docket,
+      "Judges" => document.judges.any? ? document.judges.map { |j| j.name.split.last }.join(", ") : nil,
+      "Citation" => document.display_citation,
+      "Headnotes" => document.headnotes_count.positive? ? document.headnotes_count : nil
+    }.compact.each do |label, value| %>
+      <div class="meta-row">
+        <dt class="shrink-0 text-gray-500"><%= label %></dt>
+        <dd class="text-right font-medium text-gray-800"><%= value %></dd>
+      </div>
+    <% end %>
+    <% if document.primary_topic %>
+      <div class="meta-row">
+        <dt class="shrink-0 text-gray-500">Key Issue</dt>
+        <dd class="text-right font-medium">
+          <%= link_to document.primary_topic.name, topic_path(document.primary_topic), class: "text-brand-700 hover:underline" %>
+        </dd>
+      </div>
+    <% end %>
+  </dl>
+</section>

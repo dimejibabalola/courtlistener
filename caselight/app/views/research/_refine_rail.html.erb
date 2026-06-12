@@ -1,0 +1,164 @@
+<div class="space-y-4 p-4">
+  <%# Refine Your Results %>
+  <section aria-label="Refine your results">
+    <div class="flex items-center justify-between">
+      <h2 class="text-sm font-bold text-gray-900">Refine Your Results</h2>
+      <% if @query.present? %>
+        <%= link_to "Reset", research_path(q: @query), class: "text-xs font-medium text-brand-700 hover:underline" %>
+      <% end %>
+    </div>
+
+    <%= form_with url: research_path, method: :get, class: "mt-3 space-y-3", data: { controller: "autosubmit" } do |f| %>
+      <%= hidden_field_tag :q, params[:q] %>
+      <%= hidden_field_tag :sort, params[:sort] %>
+      <%= hidden_field_tag :doc, params[:doc] %>
+      <% facets = @results&.facets %>
+
+      <div>
+        <label class="field-label" for="f-jurisdiction">Jurisdiction</label>
+        <%= select_tag :jurisdiction_id,
+              options_for_select([["All State & Federal", ""]] + (facets&.jurisdictions || []).map { |v| ["#{v.label} (#{v.count})", v.value] }, @filters["jurisdiction_id"]),
+              id: "f-jurisdiction", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <div>
+        <label class="field-label" for="f-court-level">Court Level</label>
+        <%= select_tag :court_level,
+              options_for_select([["All", ""]] + (facets&.court_levels&.map { |v| ["#{v.label} (#{v.count})", v.value] } || Court.levels.keys.map { |k| [k.titleize, k] }), @filters["court_level"]),
+              id: "f-court-level", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <div>
+        <span class="field-label">Date</span>
+        <div class="flex items-center gap-1.5">
+          <%= date_field_tag :date_from, @filters["date_from"], class: "field-input", aria: { label: "Date from" }, data: { action: "change->autosubmit#submit" } %>
+          <span class="text-xs text-gray-400">to</span>
+          <%= date_field_tag :date_to, @filters["date_to"], class: "field-input", aria: { label: "Date to" }, data: { action: "change->autosubmit#submit" } %>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="f-doctype">Document Type</label>
+        <%= select_tag :doc_type,
+              options_for_select([["All types", ""]] + (facets&.doc_types&.map { |v| ["#{v.label} (#{v.count})", v.value] } || Document::TYPES.map { |t| [t, t] }), @filters["doc_type"]),
+              id: "f-doctype", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <div>
+        <label class="field-label" for="f-topic">Key Issue</label>
+        <%= select_tag :topic_id,
+              options_for_select([["All issues", ""]] + (facets&.topics || []).map { |v| ["#{v.label} (#{v.count})", v.value] }, @filters["topic_id"]),
+              id: "f-topic", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <div>
+        <label class="field-label" for="f-judge">Judge</label>
+        <%= select_tag :judge_id,
+              options_for_select([["All Judges", ""]] + (facets&.judges || []).map { |v| ["#{v.label} (#{v.count})", v.value] }, @filters["judge_id"]),
+              id: "f-judge", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <div>
+        <label class="field-label" for="f-treatment">Treatment</label>
+        <%= select_tag :treatment,
+              options_for_select([["Any", ""]] + (facets&.treatments || []).map { |v| ["#{v.label} (#{v.count})", v.value] }, @filters["treatment"]),
+              id: "f-treatment", class: "field-input", data: { action: "change->autosubmit#submit" } %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# Saved Research %>
+  <section class="border-t border-gray-200 pt-4" aria-label="Saved research">
+    <div class="flex items-center justify-between">
+      <h2 class="text-sm font-bold text-gray-900">Saved Research</h2>
+      <%= link_to new_folder_path, class: "flex items-center gap-0.5 text-xs font-semibold text-brand-700 hover:underline" do %>
+        <%= icon :plus, class: "h-3.5 w-3.5" %> New
+      <% end %>
+    </div>
+    <ul class="mt-2 space-y-1">
+      <% @saved_folders.each do |folder| %>
+        <li>
+          <%= link_to folder_path(folder), class: "group flex items-center gap-2 rounded px-1.5 py-1.5 hover:bg-white" do %>
+            <%= icon :folder, class: "h-4 w-4 shrink-0 text-gray-400 group-hover:text-brand-600" %>
+            <span class="min-w-0 flex-1 truncate text-[13px] text-gray-700"><%= folder.name %></span>
+            <span class="text-xs tabular-nums text-gray-400"><%= folder.items_count %></span>
+          <% end %>
+        </li>
+      <% end %>
+      <% if @saved_folders.empty? %>
+        <li class="px-1.5 py-1 text-xs text-gray-500">No folders yet.</li>
+      <% end %>
+    </ul>
+    <%= link_to "View All Folders", folders_path, class: "mt-1 block px-1.5 text-xs font-semibold text-brand-700 hover:underline" %>
+  </section>
+
+  <%# Citation Tools %>
+  <section class="border-t border-gray-200 pt-4" aria-label="Citation tools">
+    <h2 class="text-sm font-bold text-gray-900">Citation Tools</h2>
+    <ul class="mt-2 space-y-1 text-[13px]">
+      <li>
+        <%= link_to @selected_document ? document_citator_path(@selected_document) : citations_path, class: "flex items-center gap-2 rounded px-1.5 py-1.5 text-gray-700 hover:bg-white hover:text-brand-700" do %>
+          <%= icon :gavel, class: "h-4 w-4 text-gray-400" %> Treatment Report
+        <% end %>
+      </li>
+      <li>
+        <%= link_to citations_path, class: "flex items-center gap-2 rounded px-1.5 py-1.5 text-gray-700 hover:bg-white hover:text-brand-700" do %>
+          <%= icon :check, class: "h-4 w-4 text-gray-400" %> Check Citation Format
+        <% end %>
+      </li>
+      <li>
+        <%= link_to @selected_document ? document_citator_path(@selected_document) : citations_path, class: "flex items-center gap-2 rounded px-1.5 py-1.5 text-gray-700 hover:bg-white hover:text-brand-700" do %>
+          <%= icon :citations, class: "h-4 w-4 text-gray-400" %> Get Citing References
+        <% end %>
+      </li>
+      <li>
+        <%= link_to @selected_document ? document_path(@selected_document, tab: "citing") : citations_path, class: "flex items-center gap-2 rounded px-1.5 py-1.5 text-gray-700 hover:bg-white hover:text-brand-700" do %>
+          <%= icon :link, class: "h-4 w-4 text-gray-400" %> Get Cited By
+        <% end %>
+      </li>
+    </ul>
+  </section>
+
+  <%# AI Research Assistant %>
+  <section class="rounded-lg border border-gray-200 bg-white p-3.5" aria-label="AI research assistant">
+    <h2 class="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+      AI Research Assistant
+      <span class="rounded bg-amber-100 px-1 text-[10px] font-bold uppercase text-amber-700">Beta</span>
+    </h2>
+    <% if @selected_document %>
+      <p class="mt-2 text-xs text-gray-600">Based on this case, you may want to consider:</p>
+      <ul class="mt-1.5 space-y-1.5">
+        <% (@suggestions || []).each do |hit| %>
+          <% doc = Document.find_by(id: hit.document_id) %>
+          <% next unless doc %>
+          <li class="flex gap-1.5 text-[13px]">
+            <span class="text-brand-500">•</span>
+            <%= link_to doc.title.truncate(58), research_url_with(doc: doc.slug, tab: nil), class: "text-brand-700 hover:underline" %>
+          </li>
+        <% end %>
+        <li class="flex gap-1.5 text-[13px]">
+          <span class="text-brand-500">•</span>
+          <% if @selected_document.primary_topic %>
+            <%= link_to "More on #{@selected_document.primary_topic.name.downcase}", topic_path(@selected_document.primary_topic), class: "text-brand-700 hover:underline" %>
+          <% else %>
+            <%= link_to "Browse the topic taxonomy", topics_path, class: "text-brand-700 hover:underline" %>
+          <% end %>
+        </li>
+      </ul>
+    <% else %>
+      <p class="mt-2 text-xs text-gray-600">Ask a research question and get an answer grounded in citable sources.</p>
+    <% end %>
+    <%= form_with url: ai_conversations_path, method: :post, class: "mt-3 flex items-center gap-1" do |f| %>
+      <% if @selected_document %>
+        <%= hidden_field_tag :context_type, "Document" %>
+        <%= hidden_field_tag :context_id, @selected_document.id %>
+      <% end %>
+      <%= text_field_tag :question, nil, placeholder: "Ask a follow up question…", required: true,
+            class: "field-input flex-1 !text-xs", aria: { label: "Ask the AI research assistant" } %>
+      <button type="submit" class="rounded bg-brand-600 p-2 text-white hover:bg-brand-700" aria-label="Send question">
+        <%= icon :send, class: "h-3.5 w-3.5" %>
+      </button>
+    <% end %>
+    <p class="mt-1.5 text-[10px] text-gray-400">Answers cite retrieved passages only. Provider: <%= Ai::Providers.fetch(Ai::Providers.resolve(current_user).first)[:label] %></p>
+  </section>
+</div>

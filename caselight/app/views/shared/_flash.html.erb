@@ -1,0 +1,13 @@
+<div class="pointer-events-none fixed right-4 top-16 z-50 flex w-80 flex-col gap-2" aria-live="polite">
+  <% flash.each do |type, message| %>
+    <div data-controller="flash"
+         class="pointer-events-auto flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm shadow-lg transition
+                <%= type.to_s == "alert" ? "border-red-200 bg-red-50 text-red-900" : "border-green-200 bg-green-50 text-green-900" %>">
+      <%= icon(type.to_s == "alert" ? :x : :check, class: "mt-0.5 h-4 w-4 shrink-0") %>
+      <span class="flex-1"><%= message %></span>
+      <button type="button" data-action="flash#dismiss" class="text-current/60 hover:text-current" aria-label="Dismiss">
+        <%= icon :x, class: "h-4 w-4" %>
+      </button>
+    </div>
+  <% end %>
+</div>

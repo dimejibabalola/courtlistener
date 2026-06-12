@@ -1,0 +1,5 @@
+<%= turbo_stream.append "ai_messages" do %>
+  <% @conversation.ai_messages.last(2).each do |message| %>
+    <%= render message %>
+  <% end %>
+<% end %>

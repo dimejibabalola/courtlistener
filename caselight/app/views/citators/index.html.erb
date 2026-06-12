@@ -1,0 +1,36 @@
+<% content_for :title, "Citation Check — Caselight" %>
+<div class="mx-auto max-w-3xl px-6 py-10">
+  <h1 class="text-xl font-bold text-gray-900">Citation Check</h1>
+  <p class="mt-1 text-sm text-gray-600">
+    Paste any citation to pull its treatment history and citing references —
+    e.g. <code class="rounded bg-gray-100 px-1">987 F.3d 1234</code> or
+    <code class="rounded bg-gray-100 px-1">28 U.S.C. § 1331</code>.
+  </p>
+
+  <%= form_with url: citations_path, method: :get, class: "mt-5 flex gap-2" do %>
+    <%= text_field_tag :q, params[:q], placeholder: "Enter a citation…", class: "field-input flex-1 !py-2.5", aria: { label: "Citation" } %>
+    <button type="submit" class="btn-primary">Check Citation</button>
+  <% end %>
+
+  <% if @miss %>
+    <div class="card mt-6 border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      No exact match for “<%= @query %>”. Closest documents:
+    </div>
+    <ul class="mt-3 divide-y divide-gray-100">
+      <% @suggestions.each do |entry| %>
+        <li class="flex items-center justify-between gap-3 py-3">
+          <div class="min-w-0">
+            <%= link_to entry.document.title, document_citator_path(entry.document), class: "font-serif text-sm font-semibold text-gray-900 hover:text-brand-700" %>
+            <p class="text-xs text-gray-500"><%= entry.document.display_citation %> · <%= entry.document.court_line %></p>
+          </div>
+          <%= treatment_badge(entry.document) %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <div class="mt-10">
+    <h2 class="text-sm font-bold text-gray-900">Browse by legal topic</h2>
+    <p class="mt-1 text-sm text-gray-600">Or navigate the <%= link_to "topic taxonomy", topics_path, class: "font-medium text-brand-700 hover:underline" %> to find headnotes on a point of law.</p>
+  </div>
+</div>

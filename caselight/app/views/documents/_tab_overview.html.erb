@@ -1,0 +1,43 @@
+<div class="space-y-6">
+  <% if document.summary.present? %>
+    <section aria-label="Neutral summary">
+      <h2 class="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+        <%= icon :sparkle, class: "h-4 w-4 text-brand-600" %> Neutral Summary
+      </h2>
+      <p class="mt-2 text-[14px] leading-relaxed text-gray-800">
+        <% sentences = document.summary.split(/(?<=\.)\s+/, 2) %>
+        <mark><%= sentences.first %></mark>
+        <%= " #{sentences.second}" if sentences.second %>
+      </p>
+    </section>
+  <% end %>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <% if document.key_facts.any? %>
+      <section aria-label="Key facts">
+        <h2 class="text-sm font-bold text-gray-900">Key Facts</h2>
+        <ul class="mt-2 list-disc space-y-1.5 pl-4 text-[13px] leading-relaxed text-gray-700">
+          <% document.key_facts.each do |fact| %><li><%= fact %></li><% end %>
+        </ul>
+      </section>
+    <% end %>
+    <div class="space-y-5">
+      <% if document.issue.present? %>
+        <section aria-label="Issue">
+          <h2 class="text-sm font-bold text-gray-900">Issue</h2>
+          <p class="mt-2 text-[13px] leading-relaxed text-gray-700"><%= document.issue %></p>
+        </section>
+      <% end %>
+      <% if document.holding.present? %>
+        <section aria-label="Holding">
+          <h2 class="text-sm font-bold text-gray-900">Holding</h2>
+          <p class="mt-2 text-[13px] leading-relaxed text-gray-700"><%= document.holding %></p>
+        </section>
+      <% end %>
+    </div>
+  </div>
+
+  <%= render "documents/notes_thread", document: document, notes: notes, compact: true %>
+
+  <%= render "documents/drafting_assistant", document: document %>
+</div>
