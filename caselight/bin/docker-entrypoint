@@ -1,14 +1,15 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database,
-# load the demo corpus (db/seeds.rb is a no-op once data exists), and re-embed
-# if stored vectors are missing/stale (e.g. after a dim change). Re-embedding is
-# best-effort: a failure (e.g. embedding service still booting) must not stop
-# the web server — search falls back to lexical and it retries next boot.
+# If running the rails server then create or migrate existing database and load
+# the demo corpus (db/seeds.rb is a no-op once data exists).
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
   ./bin/rails db:seed
-  ./bin/rails embeddings:reindex_if_stale || echo "embeddings reindex failed; will retry next boot"
+
+  # Re-embed in the background when vectors are stale (e.g. after a dim change),
+  # so it never blocks the web server from binding its port. Search falls back
+  # to lexical until the vectors populate; a failure retries on the next boot.
+  ( ./bin/rails embeddings:reindex_if_stale || echo "embeddings reindex failed; will retry next boot" ) &
 fi
 
 exec "${@}"
