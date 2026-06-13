@@ -1,7 +1,7 @@
 # Embedding provider registry. Defaults to the deterministic offline hash
-# embedder so the demo works with no API keys; set EMBEDDINGS_PROVIDER=openai
-# (and re-embed the corpus) to use a hosted model. All providers must emit
-# vectors of Embeddings.dimensions.
+# embedder so the demo works with no API keys; set EMBEDDINGS_PROVIDER=qwen
+# (real semantic search via the Qwen3-Embedding-0.6B service) or =openai, and
+# re-embed the corpus. All providers must emit vectors of Embeddings.dimensions.
 module Embeddings
   def self.dimensions
     Rails.configuration.x.embedding_dimensions
@@ -13,6 +13,7 @@ module Embeddings
 
   def self.build(provider)
     case provider
+    when "qwen" then QwenEmbedder.new
     when "openai" then OpenAiEmbedder.new
     else HashEmbedder.new
     end

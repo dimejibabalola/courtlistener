@@ -1,0 +1,6 @@
+# torch is installed separately (CPU build) in the Dockerfile to avoid
+# pulling the multi-GB CUDA wheels.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sentence-transformers>=3.3.0
+transformers>=4.51.0

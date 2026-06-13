@@ -627,7 +627,7 @@ CREATE TABLE public.document_chunks (
     document_id bigint NOT NULL,
     "position" integer DEFAULT 0 NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -896,7 +896,7 @@ CREATE TABLE public.headnotes (
     document_id bigint NOT NULL,
     number integer NOT NULL,
     text text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -3029,6 +3029,7 @@ ALTER TABLE ONLY public.headnote_topics
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260613020000'),
 ('20260612201648'),
 ('20260612001200'),
 ('20260612001100'),

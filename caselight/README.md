@@ -42,10 +42,26 @@ Routing: citation → direct fetch (Postgres); connectors → OpenSearch/PG
 boolean; prose → hybrid BM25 + cosine, fused with reciprocal-rank fusion
 (`Search::ReciprocalRankFusion`).
 
-Embeddings default to a deterministic offline hash embedder
-(`Embeddings::HashEmbedder`, 768-dim) so the demo runs with zero keys; set
-`EMBEDDINGS_PROVIDER=openai` (+ `OPENAI_API_KEY`) and re-index to use hosted
-embeddings.
+### Embedding providers
+
+Vectors are 1024-dim. Pick a provider with `EMBEDDINGS_PROVIDER`:
+
+| Provider | Notes |
+|---|---|
+| `hash` (default) | Deterministic offline feature-hash embedder — zero setup, but only models lexical overlap. Fine for the demo/tests. |
+| `qwen` | **Real semantic search** via the open-source **Qwen3-Embedding-0.6B** model, served by the bundled `embedding_service/` (FastAPI + sentence-transformers). Set `EMBEDDINGS_URL` to the service. |
+| `openai` | Hosted `text-embedding-3-*` (`OPENAI_API_KEY`). |
+
+The Qwen path is asymmetric the way the model was trained: search queries are
+encoded with its retrieval instruction, documents plain. Run it locally with:
+
+```bash
+cd embedding_service
+pip install -r requirements.txt
+uvicorn app:app --port 8000
+# then, in the app: EMBEDDINGS_PROVIDER=qwen EMBEDDINGS_URL=http://localhost:8000
+bin/rails embeddings:reindex   # re-embed the corpus after switching providers
+```
 
 ## Citator
 
@@ -156,21 +172,23 @@ included). Serverless platforms like **Vercel** and Netlify can't host it:
 they only run short-lived functions and provide no Postgres, Redis, or
 background workers.
 
-On **Railway**, the layout is four services in one project:
+On **Railway**, the layout is five services in one project:
 
 | Service | Source | Notes |
 |---|---|---|
-| `web` | this repo, root dir `caselight` (Dockerfile) | first boot runs `db:prepare` + `db:seed` automatically (seeding is idempotent) |
-| `worker` | same image | custom start command `bundle exec sidekiq` |
+| `web` | this repo, root dir `caselight` (Dockerfile) | first boot runs `db:prepare` + `db:seed`, then enqueues re-embedding if vectors are stale (all idempotent) |
+| `worker` | same image | custom start command `bundle exec sidekiq`; processes the re-embedding jobs (it can reach `embeddings` over the private net) |
+| `embeddings` | root dir `caselight/embedding_service` (Dockerfile) | Qwen3-Embedding-0.6B service; needs ~2 GB RAM, weights are baked into the image |
 | `postgres` | image `pgvector/pgvector:pg17` | volume at `/var/lib/postgresql/data` |
 | `redis` | Railway Redis template | |
 
 Set on `web` + `worker`: `RAILS_MASTER_KEY` (from `config/master.key`),
 `DATABASE_URL`, `REDIS_URL`, `DISABLE_OPENSEARCH=1`, `APP_HOST` (your
-public domain), plus any AI/provider keys from `.env.example`. Single
-process on a budget? Skip `worker` and set `ACTIVE_JOB_ADAPTER=async`
-on `web`. Attach a volume at `/rails/storage` to keep uploads across
-deploys.
+public domain), `EMBEDDINGS_PROVIDER=qwen`,
+`EMBEDDINGS_URL=http://embeddings.railway.internal:8000`, plus any
+AI/provider keys from `.env.example`. Single process on a budget? Skip
+`worker` and set `ACTIVE_JOB_ADAPTER=async` on `web`. Attach a volume at
+`/rails/storage` to keep uploads across deploys.
 
 ## Tests
 

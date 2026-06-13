@@ -1,10 +1,12 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-# and load the demo corpus (db/seeds.rb is a no-op once data exists).
+# If running the rails server then create or migrate existing database,
+# load the demo corpus (db/seeds.rb is a no-op once data exists), and enqueue
+# re-embedding if stored vectors are missing/stale (e.g. after a dim change).
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
   ./bin/rails db:seed
+  ./bin/rails embeddings:enqueue_if_stale
 fi
 
 exec "${@}"
