@@ -21,4 +21,6 @@ COPY app.py .
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('${EMBEDDING_MODEL}')"
 
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Bind IPv6 (::) — Railway's private network is IPv6-only; this dual-stacks
+# so localhost (IPv4) still works in dev.
+CMD ["sh", "-c", "uvicorn app:app --host :: --port ${PORT:-8000}"]
