@@ -96,21 +96,65 @@ extraction → treatment recompute). Included importers:
 
 ## Getting started
 
+Requirements: **Ruby 3.3+** (see `.ruby-version`), PostgreSQL 16+ with the
+`vector` + `pg_trgm` extensions, Redis (cache/Action Cable/Sidekiq).
+OpenSearch optional — the app falls back to Postgres without it.
+Background jobs run inline-ish (`:async`) in development unless
+`USE_SIDEKIQ=1` is set.
+
+> ⚠️ macOS ships an ancient system Ruby (2.6 at `/usr/bin/ruby`) that
+> cannot run this app and cannot install gems without sudo. If `ruby -v`
+> says 2.6, do step 2 below before anything else — the
+> "`windows` is not a valid platform" and "could not find bundler"
+> errors both mean you're still on the system Ruby.
+
+### macOS setup, start to finish
+
 ```bash
-cd caselight
+# 1. Services (Homebrew: https://brew.sh)
+brew install postgresql@17 pgvector redis
+brew services start postgresql@17
+brew services start redis
+
+# 2. A modern Ruby via rbenv (NOT the system Ruby)
+brew install rbenv ruby-build
+echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc
+exec zsh                          # reload your shell
+rbenv install 3.3.6
+cd caselight                      # picks up .ruby-version automatically
+ruby -v                           # must print 3.3.6 — not 2.6!
+
+# 3. The app
+gem install bundler
 bundle install
 pip3 install eyecite              # optional but recommended
-cp .env.example .env              # fill in provider keys you have
+cp .env.example .env
+open .env                         # paste in the API keys you have
 bin/rails db:prepare db:seed      # builds the fictional demo corpus
 bin/dev                           # web + tailwind watcher (+ sidekiq if USE_SIDEKIQ=1)
 ```
 
-Sign in with **alex@example.com / password123** (admin → `/sidekiq`).
+Then open <http://localhost:3000> and sign in with
+**alex@example.com / password123** (admin → `/sidekiq`).
 
-Requirements: Ruby 3.3+, PostgreSQL 16 with the `vector` + `pg_trgm`
-extensions, Redis (cache/Action Cable/Sidekiq). OpenSearch optional.
-Background jobs run inline-ish (`:async`) in development unless
-`USE_SIDEKIQ=1` is set.
+Notes for `.env`: one `VAR=value` per line, no comments on the same line
+as a value, and `DEEPSEEK_MODEL` takes a **single** model name
+(e.g. `DEEPSEEK_MODEL=deepseek-chat`).
+
+### Linux
+
+Same as above, minus Homebrew: install PostgreSQL 16 (+ the
+`postgresql-16-pgvector` package), `redis-server`, and Ruby 3.3 via your
+package manager or rbenv, then continue from step 3.
+
+### Deploying
+
+This is a full server app (Rails + PostgreSQL/pgvector + Redis + Sidekiq),
+so it needs a host that runs persistent processes — **Render, Fly.io,
+Railway, Hatchbox, or a VPS with Kamal** (a production `Dockerfile` is
+included). Serverless platforms like **Vercel** and Netlify can't host it:
+they only run short-lived functions and provide no Postgres, Redis, or
+background workers.
 
 ## Tests
 
