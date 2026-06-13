@@ -153,9 +153,10 @@ bin/dev                           # web + tailwind watcher (+ sidekiq if USE_SID
 Then open <http://localhost:3000> and sign in with
 **alex@example.com / password123** (admin → `/sidekiq`).
 
-Notes for `.env`: one `VAR=value` per line, no comments on the same line
-as a value, and `DEEPSEEK_MODEL` takes a **single** model name
-(e.g. `DEEPSEEK_MODEL=deepseek-chat`).
+Notes for `.env`: one `VAR=value` per line, and `DEEPSEEK_MODEL` takes a
+**single** model name — `deepseek-v4-flash` (faster/cheaper, the default)
+or `deepseek-v4-pro` (stronger reasoning). Both are also selectable
+per-user in Settings.
 
 ### Linux
 

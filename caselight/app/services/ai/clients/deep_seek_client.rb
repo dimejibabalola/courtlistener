@@ -1,7 +1,7 @@
 module Ai
   module Clients
     # DeepSeek chat completions (OpenAI-compatible API).
-    # Models: deepseek-chat, deepseek-reasoner. Configure via DEEPSEEK_API_KEY,
+    # Models: deepseek-v4-flash, deepseek-v4-pro. Configure via DEEPSEEK_API_KEY,
     # DEEPSEEK_BASE_URL (default https://api.deepseek.com), DEEPSEEK_MODEL.
     class DeepSeekClient
       def initialize(api_key: nil, base_url: nil)
@@ -36,8 +36,8 @@ module Ai
         end
 
         message = body.dig("choices", 0, "message") || {}
-        # deepseek-reasoner returns reasoning_content separately; only the
-        # final content is the grounded answer.
+        # Reasoning models (e.g. deepseek-v4-pro) return reasoning_content
+        # separately; only the final content is the grounded answer.
         message["content"].to_s
       rescue JSON::ParserError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout, SocketError => e
         raise Ai::ProviderError, "DeepSeek request failed: #{e.message.to_s.truncate(180)}"

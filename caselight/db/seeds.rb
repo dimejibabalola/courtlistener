@@ -31,7 +31,7 @@ ActiveRecord::Base.transaction do
   alex.assign_attributes(
     password: "password123", full_name: "Alex Parker", role: :admin,
     organization: firm, ai_provider: "deepseek",
-    ai_model: ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat"),
+    ai_model: ENV.fetch("DEEPSEEK_MODEL", "deepseek-v4-flash"),
     settings: { "default_scope" => "all", "results_per_page" => "20" }
   )
   alex.save!

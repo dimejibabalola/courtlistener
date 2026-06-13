@@ -13,8 +13,8 @@ module Ai
       },
       "deepseek" => {
         label: "DeepSeek",
-        models: ["deepseek-chat", "deepseek-reasoner"],
-        default_model: ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat"),
+        models: ["deepseek-v4-flash", "deepseek-v4-pro"],
+        default_model: ENV.fetch("DEEPSEEK_MODEL", "deepseek-v4-flash"),
         requires_key: true
       },
       "anthropic" => {
