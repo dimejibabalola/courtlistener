@@ -47,6 +47,8 @@ module Caselight
     # text-embedding-3-* models accept a `dimensions` reduction parameter).
     config.x.embedding_dimensions = 768
 
-    config.active_job.queue_adapter = :sidekiq
+    # Sidekiq by default; single-process deploys can set
+    # ACTIVE_JOB_ADAPTER=async to run jobs in-process without a worker.
+    config.active_job.queue_adapter = ENV.fetch("ACTIVE_JOB_ADAPTER", "sidekiq").to_sym
   end
 end

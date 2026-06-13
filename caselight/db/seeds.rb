@@ -8,6 +8,11 @@ require "faker"
 Faker::Config.random = Random.new(2026)
 srand(2026)
 
+if Document.exists? && ENV["RESEED"].blank?
+  puts "==> Demo corpus already present — skipping seed (set RESEED=1 to force)"
+  return
+end
+
 puts "==> Seeding Caselight demo corpus"
 
 # Run enqueued callbacks (treatment recompute) synchronously while seeding.

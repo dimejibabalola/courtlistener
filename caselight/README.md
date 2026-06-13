@@ -150,11 +150,27 @@ package manager or rbenv, then continue from step 3.
 ### Deploying
 
 This is a full server app (Rails + PostgreSQL/pgvector + Redis + Sidekiq),
-so it needs a host that runs persistent processes — **Render, Fly.io,
-Railway, Hatchbox, or a VPS with Kamal** (a production `Dockerfile` is
+so it needs a host that runs persistent processes — **Railway, Render,
+Fly.io, Hatchbox, or a VPS with Kamal** (a production `Dockerfile` is
 included). Serverless platforms like **Vercel** and Netlify can't host it:
 they only run short-lived functions and provide no Postgres, Redis, or
 background workers.
+
+On **Railway**, the layout is four services in one project:
+
+| Service | Source | Notes |
+|---|---|---|
+| `web` | this repo, root dir `caselight` (Dockerfile) | first boot runs `db:prepare` + `db:seed` automatically (seeding is idempotent) |
+| `worker` | same image | custom start command `bundle exec sidekiq` |
+| `postgres` | image `pgvector/pgvector:pg17` | volume at `/var/lib/postgresql/data` |
+| `redis` | Railway Redis template | |
+
+Set on `web` + `worker`: `RAILS_MASTER_KEY` (from `config/master.key`),
+`DATABASE_URL`, `REDIS_URL`, `DISABLE_OPENSEARCH=1`, `APP_HOST` (your
+public domain), plus any AI/provider keys from `.env.example`. Single
+process on a budget? Skip `worker` and set `ACTIVE_JOB_ADAPTER=async`
+on `web`. Attach a volume at `/rails/storage` to keep uploads across
+deploys.
 
 ## Tests
 
