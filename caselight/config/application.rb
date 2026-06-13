@@ -42,10 +42,11 @@ module Caselight
     # tsvector triggers and pgvector indexes can't be represented in schema.rb.
     config.active_record.schema_format = :sql
 
-    # Dimensionality of every stored embedding. Matches Qwen3-Embedding-0.6B's
-    # native 1024 dims; the hash embedder adapts, and OpenAI's
-    # text-embedding-3-* models accept a `dimensions` reduction parameter.
-    config.x.embedding_dimensions = 1024
+    # Dimensionality of every stored embedding. Matches bge-small-en-v1.5's
+    # 384 dims (the default embedding service model). The hash embedder adapts;
+    # Qwen3-Embedding-0.6B can MRL-truncate to 384 (EMBEDDING_DIM=384) and
+    # OpenAI's text-embedding-3-* accept a `dimensions` reduction parameter.
+    config.x.embedding_dimensions = 384
 
     # Sidekiq by default; single-process deploys can set
     # ACTIVE_JOB_ADAPTER=async to run jobs in-process without a worker.

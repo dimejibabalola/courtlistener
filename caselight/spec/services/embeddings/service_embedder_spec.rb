@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Embeddings::QwenEmbedder do
+RSpec.describe Embeddings::ServiceEmbedder do
   subject(:embedder) { described_class.new }
 
   # Captures the request body so we can assert on the query/document mode, and

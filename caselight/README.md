@@ -44,22 +44,22 @@ boolean; prose → hybrid BM25 + cosine, fused with reciprocal-rank fusion
 
 ### Embedding providers
 
-Vectors are 1024-dim. Pick a provider with `EMBEDDINGS_PROVIDER`:
+Vectors are 384-dim. Pick a provider with `EMBEDDINGS_PROVIDER`:
 
 | Provider | Notes |
 |---|---|
 | `hash` (default) | Deterministic offline feature-hash embedder — zero setup, but only models lexical overlap. Fine for the demo/tests. |
-| `qwen` | **Real semantic search** via the open-source **Qwen3-Embedding-0.6B** model, served by the bundled `embedding_service/` (FastAPI + sentence-transformers). Set `EMBEDDINGS_URL` to the service. |
+| `service` | **Real semantic search** via the bundled `embedding_service/` (FastAPI + sentence-transformers). Default model **bge-small-en-v1.5** (384-dim, ~133 MB) runs on a small host; set `EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B` + `EMBEDDING_DIM=384` on a larger one. Point the app at it with `EMBEDDINGS_URL`. |
 | `openai` | Hosted `text-embedding-3-*` (`OPENAI_API_KEY`). |
 
-The Qwen path is asymmetric the way the model was trained: search queries are
-encoded with its retrieval instruction, documents plain. Run it locally with:
+Retrieval is asymmetric: queries are encoded with the model's retrieval
+instruction, documents plain. Run the service locally with:
 
 ```bash
 cd embedding_service
 pip install -r requirements.txt
 uvicorn app:app --port 8000
-# then, in the app: EMBEDDINGS_PROVIDER=qwen EMBEDDINGS_URL=http://localhost:8000
+# then, in the app: EMBEDDINGS_PROVIDER=service EMBEDDINGS_URL=http://localhost:8000
 bin/rails embeddings:reindex   # re-embed the corpus after switching providers
 ```
 
@@ -179,13 +179,13 @@ On **Railway**, the layout is five services in one project:
 |---|---|---|
 | `web` | this repo, root dir `caselight` (Dockerfile) | first boot runs `db:prepare` + `db:seed`, then enqueues re-embedding if vectors are stale (all idempotent) |
 | `worker` | same image | custom start command `bundle exec sidekiq`; processes the re-embedding jobs (it can reach `embeddings` over the private net) |
-| `embeddings` | root dir `caselight/embedding_service` (Dockerfile) | Qwen3-Embedding-0.6B service; needs ~2 GB RAM, weights are baked into the image |
+| `embeddings` | root dir `caselight/embedding_service` (Dockerfile) | sentence-transformers service; default bge-small-en-v1.5 (~133 MB, fits small hosts); weights baked into the image |
 | `postgres` | image `pgvector/pgvector:pg17` | volume at `/var/lib/postgresql/data` |
 | `redis` | Railway Redis template | |
 
 Set on `web` + `worker`: `RAILS_MASTER_KEY` (from `config/master.key`),
 `DATABASE_URL`, `REDIS_URL`, `DISABLE_OPENSEARCH=1`, `APP_HOST` (your
-public domain), `EMBEDDINGS_PROVIDER=qwen`,
+public domain), `EMBEDDINGS_PROVIDER=service`,
 `EMBEDDINGS_URL=http://embeddings.railway.internal:8000`, plus any
 AI/provider keys from `.env.example`. Single process on a budget? Skip
 `worker` and set `ACTIVE_JOB_ADAPTER=async` on `web`. Attach a volume at

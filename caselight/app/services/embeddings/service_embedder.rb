@@ -1,8 +1,10 @@
 module Embeddings
-  # Client for the Qwen3-Embedding-0.6B microservice (see embedding_service/).
-  # Search queries are encoded with the model's retrieval instruction; documents
-  # are encoded plain — matching Qwen3-Embedding's asymmetric retrieval design.
-  class QwenEmbedder
+  # Client for the embedding microservice (see embedding_service/), which runs a
+  # sentence-transformers model — bge-small-en-v1.5 by default, or
+  # Qwen3-Embedding-0.6B on a larger host. Search queries are encoded with the
+  # model's retrieval instruction; documents plain (asymmetric retrieval). The
+  # service owns the model; this client just validates the returned dimension.
+  class ServiceEmbedder
     DEFAULT_URL = "http://localhost:8000".freeze
     OPEN_TIMEOUT = 5
     READ_TIMEOUT = 120 # the first call after a cold start pays model load time
@@ -12,7 +14,7 @@ module Embeddings
     def embed(text)
       request([text.to_s], mode: "query")&.first
     rescue StandardError => e
-      Rails.logger.warn("[QwenEmbedder] query embed failed: #{e.class}: #{e.message}")
+      Rails.logger.warn("[ServiceEmbedder] query embed failed: #{e.class}: #{e.message}")
       nil
     end
 

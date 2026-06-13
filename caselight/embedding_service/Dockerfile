@@ -1,5 +1,6 @@
-# Qwen3-Embedding-0.6B inference service (CPU). Built and run as its own
-# Railway service; the Rails web/worker reach it over the private network.
+# Sentence-transformers embedding service (CPU). Built and run as its own
+# Railway service; the Rails app reaches it over the private network. Default
+# model bge-small-en-v1.5 fits a small host; override EMBEDDING_MODEL for Qwen.
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -7,7 +8,7 @@ WORKDIR /app
 ENV PIP_NO_CACHE_DIR=1 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/app/hf-cache \
-    EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B
+    EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
 
 # CPU-only torch first so sentence-transformers doesn't drag in CUDA wheels.
 RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
